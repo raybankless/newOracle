@@ -1,16 +1,12 @@
-import {
-  useAddress,
-  useConnectionStatus,
-  useDisconnect,
-  useEmbeddedWallet,
-  useWallet,
-} from "@thirdweb-dev/react";
-import styles from "../styles/Home.module.css";
-import { NextPage } from "next";
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
+import { NextPage } from 'next';
+import { useAddress, useConnectionStatus, useDisconnect, useWallet, useEmbeddedWallet } from '@thirdweb-dev/react';
+import styles from '../styles/Home.module.css';
 
 const Home: NextPage = () => {
-  const address = useAddress();
+  const router = useRouter(); // Get the router object
+  const address = useAddress(); // Get the connected wallet address
   const connectedWallet = useWallet("embeddedWallet");
   const [email, setEmail] = useState<string | undefined>();
   const connectionStatus = useConnectionStatus();
@@ -21,6 +17,15 @@ const Home: NextPage = () => {
       connectedWallet?.getEmail().then((email) => setEmail(email));
     }
   }, [connectedWallet]);
+
+  useEffect(() => {
+    if (address && email) {
+      router.push({
+        pathname: '/dashboard',
+        query: { email, address }, // Passing the email and address in the query parameters
+      });
+    }
+  }, [address, email, router]);
 
   return (
     <main className={styles.main}>
@@ -35,14 +40,14 @@ const Home: NextPage = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  thirdweb.
+                  GudFrens.
                 </a>
               </span>
             </h1>
             {address ? (
               <>
-                <h3>Connected as {email}</h3>
-                <p>Your wallet: {address}</p>
+                <h3 className={styles.gradientText0}>Connected as {email}</h3>
+                <p className={styles.gradientText0}>Your wallet: {address}</p>
                 <button className={styles.button} onClick={disconnect}>
                   Log out
                 </button>

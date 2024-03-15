@@ -10,7 +10,7 @@ const activeChain = "ethereum";
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <ThirdwebProvider
-      clientId={process.env.NEXT_PUBLIC_TEMPLATE_CLIENT_ID}
+      clientId={'22f2a1f2653b1f091455a59951c2ecca'}
       activeChain={activeChain}
       supportedWallets={[embeddedWallet()]}
     >
