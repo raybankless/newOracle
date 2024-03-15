@@ -17,6 +17,7 @@ export default function EventDetail() {
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
+          console.log('Event details fetched successfully:', data.event);
           setEvent(data.event);
         } else {
           // Redirect or handle the error if the event is not found
@@ -51,7 +52,7 @@ export default function EventDetail() {
       <h1 className={styles.textBlack}>{event.name}</h1>
       <p className={styles.textBlack} >{event.description}</p>
       <p className={styles.textBlack} >{event.creatorWallet}</p>
-      <p className={styles.textBlack} >{event.stratDate}</p>
+      <p className={styles.textBlack} >{event.startDate}</p>
       {/* Display other details of the event as needed */}
       <button onClick={endEvent} className={styles.endEventButton}>End Event</button>
     </div>
