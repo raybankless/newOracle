@@ -10,6 +10,7 @@ const eventSchema = new mongoose.Schema({
   location: String,
   headerImage: String,
   creatorWallet: String,
+  closed: { type: Boolean, default: false },
 }, { timestamps: true });
 
 export default mongoose.models.Event || mongoose.model('Event', eventSchema);

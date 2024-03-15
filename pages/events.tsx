@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import styles from '../styles/Events.module.css';
 import HomeButton from '../components/HomeButton';
 import { useAddress} from '@thirdweb-dev/react'; 
+import Link from 'next/link';
 
 const Events: NextPage = () => {
   const currentWallet =  useAddress();
@@ -163,12 +164,16 @@ const Events: NextPage = () => {
     {events.length > 0 ? (
       <div className={styles.eventsList}>
         {events.map((event) => (
+        <Link key={event._id} href={`/events/${event._id}`} passHref>
+          <a className="eventItem">
           <div key={event._id} className={styles.eventItem}>    
             <h2 className={styles.textBlack}>{event.name}</h2>
             <p className={styles.textBlack}>{event.description}</p>
             <p className={styles.textBlack}>{event.creatorWallet}</p>
             {/* Display other event details as needed */}
           </div>
+            </a>
+              </Link>
         ))}
       </div>
     ) : (
