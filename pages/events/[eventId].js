@@ -3,15 +3,25 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import styles from '../../styles/EventDetail.module.css'; // Make sure the path to your CSS module is correct
 import HomeButton from '../../components/HomeButton';
+import { useAddress } from "@thirdweb-dev/react";
 
 export default function EventDetail() {
   const router = useRouter();
   const { eventId } = router.query;
   const [event, setEvent] = useState(null);
 
+  const currentWallet = useAddress();
+  
+  // Redirect to the login page if no wallet is connected
+  useEffect(() => {
+    if (!currentWallet) {
+      router.push('/'); // Redirect to the login page
+    }
+  }, [currentWallet, router]);
+
   // Fetch event details
   useEffect(() => {
-    if (!eventId) return;
+    if (!eventId || !currentWallet) return;
     console.log('Fetching event details for eventId:', eventId);
     fetch(`/api/events/${eventId}`)
       .then((res) => res.json())
