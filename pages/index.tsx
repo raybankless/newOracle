@@ -40,7 +40,7 @@ const Home: NextPage = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  GudFrens.
+                  GoodOracle.
                 </a>
               </span>
             </h1>

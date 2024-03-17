@@ -4,17 +4,19 @@ import { useRouter } from 'next/router';
 import styles from '../../styles/EventDetail.module.css'; // Make sure the path to your CSS module is correct
 import HomeButton from '../../components/HomeButton';
 import { useAddress } from "@thirdweb-dev/react";
+import LoginModal from '../../components/LoginModal';
 
 export default function EventDetail() {
   const router = useRouter();
   const { eventId } = router.query;
   const [event, setEvent] = useState(null);
-
+  const [showLoginModal, setShowLoginModal] = useState(false); 
   const currentWallet = useAddress();
+
   
   // Fetch event details
   useEffect(() => {
-    if (!eventId || !currentWallet) return;
+    if (!eventId) return;
     console.log('Fetching event details for eventId:', eventId);
     fetch(`/api/events/${eventId}`)
       .then((res) => res.json())
@@ -47,6 +49,9 @@ export default function EventDetail() {
     }
   };
 
+  const showLoginButton = !currentWallet;
+  const showEndEventButton = currentWallet && event?.creatorWallet === currentWallet;
+
   if (!event) return <div className={styles.loading}>Loading...</div>;
 
   return (
@@ -56,8 +61,14 @@ export default function EventDetail() {
       <p className={styles.textBlack} >{event.description}</p>
       <p className={styles.textBlack} >{event.creatorWallet}</p>
       <p className={styles.textBlack} >{event.startDate}</p>
-      {/* Display other details of the event as needed */}
-      <button onClick={endEvent} className={styles.endEventButton}>End Event</button>
+      {/* Conditional button rendering based on user connection and role */}
+      {showLoginButton && (
+        <button className={styles.loginButton} onClick={() => setShowLoginModal(true)}>Log In</button>
+      )}
+      {showEndEventButton && (
+        <button onClick={endEvent} className={styles.endEventButton}>End Event</button>
+      )}
+      {showLoginModal && <LoginModal onClose={() => setShowLoginModal(false)} />}
     </div>
   );
 }
