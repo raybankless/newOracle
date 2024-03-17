@@ -31,12 +31,15 @@ const Events: NextPage = () => {
   // Modal component with form for event creation
   const Modal = () => {
     const [eventName, setEventName] = useState("");
+    const [logoImage, setLogoImage] = useState('');
+    const [headerImage, setHeaderImage] = useState("");
     const [eventDescription, setEventDescription] = useState("");
+    const [additionalInfoLink, setAdditionalInfoLink] = useState('');
     const [scopeOfWork, setScopeOfWork] = useState("");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
     const [eventLocation, setEventLocation] = useState("");
-    const [headerImage, setHeaderImage] = useState("");
+    
     const locations = ["Lisbon", "New York", "Istanbul", "Sydney"];
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -163,6 +166,26 @@ const Events: NextPage = () => {
                   onChange={(e) => setHeaderImage(e.target.value)}
                 />
               </div>
+              <div className={styles.formGroup}>
+              <label className={styles.textBlack}>Hypercert Logo Image URL:</label>
+              <input
+                id="logoImage"
+                type="text"
+                value={logoImage}
+                onChange={(e) => setLogoImage(e.target.value)}
+                required
+              />
+              </div>  
+              <div className={styles.formGroup}>
+              <label className={styles.textBlack}>Additional Info Link:</label>
+              <input
+                id="additionalInfoLink"
+                type="text"
+                value={additionalInfoLink}
+                onChange={(e) => setAdditionalInfoLink(e.target.value)}
+                required
+              />
+              </div> 
               <button type="submit" className={styles.submitButton}>
                 Create Event
               </button>

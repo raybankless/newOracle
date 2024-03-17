@@ -12,10 +12,10 @@ channel = "stable-23_05"
 language = "nodejs"
 
 [deployment]
-deploymentTarget = "static"
+deploymentTarget = "cloudrun"
 ignorePorts = false
 build = ["sh", "-c", "yarn build"]
-publicDir = "public"
+run = ["sh", "-c", "yarn start"]
 
 [[ports]]
 localPort = 3000

@@ -12,13 +12,6 @@ export default function EventDetail() {
 
   const currentWallet = useAddress();
   
-  // Redirect to the login page if no wallet is connected
-  useEffect(() => {
-    if (!currentWallet) {
-      router.push('/'); // Redirect to the login page
-    }
-  }, [currentWallet, router]);
-
   // Fetch event details
   useEffect(() => {
     if (!eventId || !currentWallet) return;
@@ -38,7 +31,7 @@ export default function EventDetail() {
         console.error("Could not fetch the event:", error);
         router.push('/events');
       });
-  }, [eventId, router]);
+  }, [eventId, currentWallet, router]);
 
   // Function to end the event and create a Hypercert
   const endEvent = async () => {
