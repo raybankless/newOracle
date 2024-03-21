@@ -2,7 +2,7 @@ import { NextPage } from "next";
 import { useEffect, useState } from "react";
 import styles from "../styles/Events.module.css";
 import HomeButton from "../components/HomeButton";
-import { useAddress } from "@thirdweb-dev/react";
+import { useAddress, ConnectWallet } from "@thirdweb-dev/react";
 import Link from "next/link";
 
 const Events: NextPage = () => {
@@ -31,7 +31,6 @@ const Events: NextPage = () => {
   // Modal component with form for event creation
   const Modal = () => {
     const [eventName, setEventName] = useState("");
-    const [logoImage, setLogoImage] = useState('');
     const [headerImage, setHeaderImage] = useState("");
     const [eventDescription, setEventDescription] = useState("");
     const [additionalInfoLink, setAdditionalInfoLink] = useState('');
@@ -158,24 +157,14 @@ const Events: NextPage = () => {
               </div>
               <div className={styles.formGroup}>
                 <label className={styles.textBlack}>
-                  Hypercert Header Image Link
+                  Header Image Link
                 </label>
                 <input
                   type="url"
                   value={headerImage}
                   onChange={(e) => setHeaderImage(e.target.value)}
                 />
-              </div>
-              <div className={styles.formGroup}>
-              <label className={styles.textBlack}>Hypercert Logo Image URL:</label>
-              <input
-                id="logoImage"
-                type="text"
-                value={logoImage}
-                onChange={(e) => setLogoImage(e.target.value)}
-                required
-              />
-              </div>  
+              </div> 
               <div className={styles.formGroup}>
               <label className={styles.textBlack}>Additional Info Link:</label>
               <input
@@ -199,6 +188,7 @@ const Events: NextPage = () => {
   return (
     <div className={styles.eventsPage}>
       <HomeButton />
+      <ConnectWallet />
       <button className={styles.button} onClick={() => setShowModal(true)}>
         Create Event
       </button>

@@ -1,11 +1,12 @@
 import type { AppProps } from "next/app";
-import { ThirdwebProvider, embeddedWallet } from "@thirdweb-dev/react";
+import { ThirdwebProvider, embeddedWallet, smartWallet, localWallet } from "@thirdweb-dev/react";
+import {Optimism} from "@thirdweb-dev/chains";
 import "../styles/globals.css";
 
 // This is the chain your dApp will work on.
 // Change this to the chain your app is built for.
 // You can also import additional chains from `@thirdweb-dev/chains` and pass them directly.
-const activeChain = "ethereum";
+const activeChain = Optimism;
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (

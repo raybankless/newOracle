@@ -11,6 +11,7 @@
     "deploy": "next build && next export && npx thirdweb@latest upload out"
   },
   "dependencies": {
+    "@hypercerts-org/sdk": "^1.4.3",
     "@thirdweb-dev/react": "^4",
     "@thirdweb-dev/sdk": "^4",
     "ethers": "^5",
@@ -18,7 +19,9 @@
     "mongoose": "^8.2.1",
     "next": "^13",
     "react": "^18.2",
-    "react-dom": "^18.2"
+    "react-dom": "^18.2",
+    "thirdweb": "^1.0.0-beta-75bec3710151c4255c8314e3ce8dd366265b6c58-20240317031400",
+    "viem": "^2.8.13"
   },
   "devDependencies": {
     "@types/node": "^18.11.11",

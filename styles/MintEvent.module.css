@@ -1,0 +1,21 @@
+/* HomeButton.module.css */
+.mintButtonContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.mintButton {
+  background-color: #4CAF50; /* Regen green */
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 20px; /* Rounded edges */
+  text-decoration: none;
+  font-weight: bold;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.mintButton:hover {
+  background-color: #367C39; /* Darker shade on hover */
+}
