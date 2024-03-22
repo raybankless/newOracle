@@ -92,8 +92,7 @@ export default function EventDetail() {
       const account = await ethereum.request({method: 'eth_accounts'});
       const signer = provider.getSigner();
       const address = account[0];
-      const transport = custom (signer);
-      const wallet = await createWalletClient({
+      const wallet =  createWalletClient({
         account : address,
         chain : optimism,
         
