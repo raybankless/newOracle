@@ -5,6 +5,12 @@
   margin: auto;
 }
 
+.gradientText0 {
+  background: -webkit-linear-gradient(#76b947, #4a7b31, #2e5820);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
 .header {
   text-align: center;
   margin-bottom: 2rem;

@@ -52,6 +52,7 @@ const Events: NextPage = () => {
         location: eventLocation,
         headerImage,
         creatorWallet: currentWallet,
+        additionalInfoLink,
       };
 
       try {
@@ -75,6 +76,7 @@ const Events: NextPage = () => {
           setHeaderImage("");
           console.log("Event created:", result.event);
           setShowModal(false); // Close the modal
+          setAdditionalInfoLink ("");
         } else {
           // Handle error - give user feedback
           console.error("Failed to create event:", result.error);
@@ -217,3 +219,5 @@ const Events: NextPage = () => {
 };
 
 export default Events;
+
+

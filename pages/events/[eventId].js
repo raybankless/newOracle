@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useAddress } from "@thirdweb-dev/react";
 import {
+  HypercertClient,
   formatHypercertData,
   TransferRestrictions,
 } from "@hypercerts-org/sdk";
@@ -11,6 +12,9 @@ import LoginModal from "../../components/LoginModal";
 import styles from "../../styles/EventDetail.module.css";
 import { ethers } from "ethers";
 import hypercertABI from "../../abis/hypercertABI.json";
+import {Optimism} from "@thirdweb-dev/chains";
+import { createWalletClient, custom } from 'viem';
+import {optimism} from "viem/chains";
 
 export default function EventDetail() {
   const router = useRouter();
@@ -19,8 +23,8 @@ export default function EventDetail() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const currentWallet = useAddress();
   const contractAddress = "0x822F17A9A5EeCFd66dBAFf7946a8071C265D1d07";
-//  const wallet = metamaskWallet({client: twClient,});
-  const [hypercerData, setHypercerData] = useState("");
+  const [hypercertData, setHypercertData] = useState("");
+  
 
   useEffect(() => {
     if (!eventId) return;
@@ -84,10 +88,19 @@ export default function EventDetail() {
     if (data.success) {
       await switchToOptimism();
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []); // Request account access if needed
+      await provider.send("eth_accounts", []);
+      const account = await ethereum.request({method: 'eth_accounts'});
       const signer = provider.getSigner();
-      const account = await signer.getAddress();
-     console.log("signer", signer);
+      const address = account[0];
+      const transport = custom (signer);
+      const wallet = await createWalletClient({
+        account : address,
+        chain : optimism,
+        
+        transport : custom (window.ethereum),
+      })
+      console.log(wallet)
+      
       const contract = new ethers.Contract(contractAddress, hypercertABI, signer);
       try {
         const {
@@ -114,35 +127,65 @@ export default function EventDetail() {
           contributors: [`Event Admin: ${event.creatorWallet}`],
           rights: ["Public Display"],
         });
-
         if (!valid) {
           console.error("Metadata validation failed:", errors);
           return;
         }
-        setHypercerData(JSON.stringify(metadata));
+        setHypercertData(JSON.stringify(metadata)); 
+        
+        
         const units = BigInt(100);
         const restrictions = TransferRestrictions.FromCreatorOnly;
         
-        // Mint the Hypercert
+      /*  // Mint the Hypercert with contract interaction
         try {
-          const tx = await contract.mintClaim(account, units, metadata, restrictions);
+          console.log("hypercertData");
+          console.log(hypercertData);
+          const tx = await contract.mintClaim(address, units, hypercertData, restrictions);
           await tx.wait(); // Wait for the transaction to be mined
           console.log("Mint successful", tx);
         } catch (error) {
           console.error("Mint failed", error);
-        }
+        }*/
+
+         // Mint the Hypercert with hypercert client
+        const client = new HypercertClient({
+          chain : { id: 10 },
+          walletClient: wallet,
+          easContractAddress : currentWallet,
+        });
         
-        // Proceed with the rest of the endEvent logic...
+        console.log("hypertcertData");
+        console.log(hypercertData);
+        console.log("metadata");
+        console.log(metadata);
+
+        
+       try {
+          const tx = await client.mintClaim(
+            metadata,
+            units,
+            restrictions,
+          );
+          console.log("Hypercert minted:", tx);
+        } catch (mintError) {
+          console.error("tx error:", mintError );
+         console.error("tx error:", mintError.transcationHash );
+         console.error("tx error.payload:", mintError.payload );
+        }
+      
+
+
+
       } catch (error) {
         console.error("Failed to create Hypercert:", error);
       }
-     // router.push("/events"); // Optionally, redirect to the events listing or another page
+    
     } else {
       alert("Failed to end the event.");
     }
   };
-  console.log("hypercerData");
-  console.log(hypercerData);
+  
   const showLoginButton = !currentWallet;
   const showEndEventButton =
     currentWallet && event?.creatorWallet === currentWallet;

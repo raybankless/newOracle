@@ -16,7 +16,11 @@ const Dashboard: NextPage = () => {
   return (
     <div className={styles.dashboard}>
       <header className={styles.header}>
-        <h1 className={styles.title}>Welcome to GudFrens</h1>
+        <h1 className={styles.title}>
+          <span className={styles.gradientText0}>
+              GoodOracle.
+          </span>
+        </h1>
         <ConnectWallet />
         <nav className={styles.navigation}>
           <button className={styles.navButton} onClick={navigateToEvents}>Events</button>
