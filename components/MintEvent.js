@@ -1,5 +1,10 @@
 import React from "react";
 import { useAddress } from "@thirdweb-dev/react";
+import {
+  useActiveAccount,
+  useActiveWallet,
+  useActiveWalletChain,
+} from "thirdweb/react";
 import { ethers } from "ethers";
 import {
   HypercertClient,
@@ -11,6 +16,16 @@ import { createWalletClient, custom } from "viem";
 
 const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
   const currentWallet = useAddress();
+  const twAccount = useAcount();
+  const twChain = useActiveWalletChain();
+  const twWallet = useActiveWallet();
+
+  console.log("twAccount");
+  console.log(twAccount);
+  console.log("twChain");
+  console.log(twChain);
+  console.log("twWallet");
+  console.log(twWallet);
 
   async function switchToOptimism() {
     if (window.ethereum) {
@@ -53,17 +68,22 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
     }
 
     await switchToOptimism();
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    try {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+    } catch (error) {
+      console.log("provider");
+      console.log(error);
+    }
+
     await provider.send("eth_accounts", []);
     const account = await ethereum.request({ method: "eth_accounts" });
     const address = account[0];
-    
 
     console.log("account");
     console.log(account);
     console.log("adress");
     console.log(address);
-    
+
     const wallet = createWalletClient({
       account: address,
       chain: optimism,
@@ -131,7 +151,13 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
     }
   };
 
-  return <button onClick={mintEvent}>Mint Hypercert</button>;
+  return (
+    <div className={styles.mintButtonContainer}>
+      <button className={styles.mintButton} onClick={mintEvent}>
+        Mint Hypercert
+      </button>
+    </div>
+  );
 };
 
 export default MintEventButton;
