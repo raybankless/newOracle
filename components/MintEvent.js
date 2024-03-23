@@ -56,7 +56,7 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
     }
 
     await switchToOptimism();
-    try {
+    
       await window.ethereum.request({ method: "eth_requestAccounts" }); // Request user to connect their MetaMask
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
@@ -65,9 +65,6 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
       const tempAddress = await signer.getAddress();
       setAccount(tempAccount);
       setAddress(tempAddress);
-    } catch (error) {
-      console.error("Error connecting to MetaMask:", error);
-    }
 
     console.log("account");
     console.log(account);
