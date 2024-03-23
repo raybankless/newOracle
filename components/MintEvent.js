@@ -61,8 +61,10 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       await provider.send("eth_accounts", []);
-      setAccount(await ethereum.request({ method: "eth_accounts" }));
-      setAddress(await signer.getAddress());
+      const tempAccount = await ethereum.request({ method: "eth_accounts" });
+      const tempAddress = await signer.getAddress();
+      setAccount(tempAccount);
+      setAddress(tempAddress);
     } catch (error) {
       console.error("Error connecting to MetaMask:", error);
     }
