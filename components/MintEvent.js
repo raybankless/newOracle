@@ -16,7 +16,7 @@ import { createWalletClient, custom } from "viem";
 
 const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
   const currentWallet = useAddress();
-  const twAccount = useAcount();
+  const twAccount = useActiveAccount();
   const twChain = useActiveWalletChain();
   const twWallet = useActiveWallet();
 
