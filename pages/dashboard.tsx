@@ -2,17 +2,21 @@ import { NextPage } from 'next';
 import { useDisconnect, ConnectWallet} from '@thirdweb-dev/react';
 import styles from '../styles/Dashboard.module.css'; // Ensure you have this CSS file in your styles directory
 import { useRouter } from 'next/router';
+import { useQuery } from "@tanstack/react-query";
+import { HypercertClient } from "@hypercerts-org/sdk";
 
 const Dashboard: NextPage = () => {
   const router = useRouter();
-  const {email, address } = router.query; // Retrieve email and address from the query
-  const disconnect = useDisconnect();
+  const [myHypercerts, setMyHypercerts] = useState([]);
 
   // Navigate to the Events page
   const navigateToEvents = () => {
     router.push('/events');
   };
 
+  
+
+  
   return (
     <div className={styles.dashboard}>
       <header className={styles.header}>
