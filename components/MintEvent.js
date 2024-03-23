@@ -3,7 +3,7 @@ import { useAddress } from "@thirdweb-dev/react";
 import {
   useActiveAccount,
   useActiveWallet,
-  useActiveWalletChain,
+  useActiveWalletChain,s
 } from "thirdweb/react";
 import { ethers } from "ethers";
 import {
@@ -13,6 +13,7 @@ import {
 } from "@hypercerts-org/sdk";
 import { optimism } from "viem/chains";
 import { createWalletClient, custom } from "viem";
+import styles from '../styles/MintEvent.module.css';
 
 const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
   const currentWallet = useAddress();
