@@ -9,10 +9,10 @@ import {
 } from "@hypercerts-org/sdk";
 import HomeButton from "../../components/HomeButton";
 import LoginModal from "../../components/LoginModal";
+import MintEventButton from "../../components/MintEvent";
 import styles from "../../styles/EventDetail.module.css";
 import { ethers } from "ethers";
 import hypercertABI from "../../abis/hypercertABI.json";
-import {Optimism} from "@thirdweb-dev/chains";
 import { createWalletClient, custom } from 'viem';
 import {optimism} from "viem/chains";
 
@@ -85,6 +85,7 @@ export default function EventDetail() {
       method: "POST",
     });
     const data = await response.json();
+    
     if (data.success) {
       await switchToOptimism();
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -136,16 +137,16 @@ export default function EventDetail() {
         const units = BigInt(100);
         const restrictions = TransferRestrictions.FromCreatorOnly;
         
-      /*  // Mint the Hypercert with contract interaction
-        try {
-          console.log("hypercertData");
-          console.log(hypercertData);
-          const tx = await contract.mintClaim(address, units, hypercertData, restrictions);
-          await tx.wait(); // Wait for the transaction to be mined
-          console.log("Mint successful", tx);
-        } catch (error) {
-          console.error("Mint failed", error);
-        }*/
+            /*  // Mint the Hypercert with contract interaction
+              try {
+                console.log("hypercertData");
+                console.log(hypercertData);
+                const tx = await contract.mintClaim(address, units, hypercertData, restrictions);
+                await tx.wait(); // Wait for the transaction to be mined
+                console.log("Mint successful", tx);
+              } catch (error) {
+                console.error("Mint failed", error);
+              }*/
 
          // Mint the Hypercert with hypercert client
         const client = new HypercertClient({
@@ -212,6 +213,11 @@ export default function EventDetail() {
           <button onClick={endEvent} className={styles.endEventButton}>
             End Event
           </button>
+          <MintEventButton 
+            event={event} 
+            onMintSuccess={(tx) => console.log('Minted successfully', tx)}
+            onMintError={(error) => console.error('Minting error', error)}
+          />
         </div>
       )}
       {showLoginModal && (
