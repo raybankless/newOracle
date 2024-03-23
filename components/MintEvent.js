@@ -14,7 +14,6 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
   const currentWallet = useAddress();
   const [account, setAccount] = useState(null);
   const [address, setAddress] = useState(null);
-  const [provider, setProvider] = useState(null);
 
   async function switchToOptimism() {
     if (window.ethereum) {
@@ -59,7 +58,7 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
     await switchToOptimism();
     try {
       await window.ethereum.request({ method: "eth_requestAccounts" }); // Request user to connect their MetaMask
-      setProvider ( new ethers.providers.Web3Provider(window.ethereum));
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       await provider.send("eth_accounts", []);
       setAccount (await ethereum.request({ method: "eth_accounts" }));
@@ -68,8 +67,6 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
       console.error("Error connecting to MetaMask:", error);
     }
 
-    console.log("provider");
-    console.log(provider);
     console.log("account");
     console.log(account);
     console.log("adress");
