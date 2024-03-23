@@ -8,7 +8,6 @@ import {
 } from "@hypercerts-org/sdk";
 import { optimism } from "viem/chains";
 import { createWalletClient, custom } from "viem";
-import styles from '../styles/HomeButton.module.css';
 
 const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
   const currentWallet = useAddress();
@@ -57,11 +56,18 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     await provider.send("eth_accounts", []);
     const account = await ethereum.request({ method: "eth_accounts" });
-    const signer = provider.getSigner();
-    const address = signer.getAddress();
+    const address = account[0];
+    
+
+    console.log("account");
+    console.log(account);
+    console.log("adress");
+    console.log(address);
+    
     const wallet = createWalletClient({
       account: address,
       chain: optimism,
+
       transport: custom(window.ethereum),
     });
 
@@ -125,11 +131,7 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
     }
   };
 
-  return (
-    <div className={styles.homeButtonContainer}>
-    <button className={styles.homeButton} onClick={mintEvent}>Mint Event</button>;
-    </div>
-         )
+  return <button onClick={mintEvent}>Mint Hypercert</button>;
 };
 
 export default MintEventButton;
