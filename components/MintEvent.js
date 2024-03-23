@@ -8,6 +8,7 @@ import {
 } from "@hypercerts-org/sdk";
 import { optimism } from "viem/chains";
 import { createWalletClient, custom } from "viem";
+import { useState } from "react";
 
 const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
   const currentWallet = useAddress();
