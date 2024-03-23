@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { useAddress } from "@thirdweb-dev/react";
 import {
   useActiveAccount,
   useActiveWallet,
-  useActiveWalletChain,s
+  useActiveWalletChain,
+  s,
 } from "thirdweb/react";
 import { ethers } from "ethers";
 import {
@@ -13,13 +14,14 @@ import {
 } from "@hypercerts-org/sdk";
 import { optimism } from "viem/chains";
 import { createWalletClient, custom } from "viem";
-import styles from '../styles/MintEvent.module.css';
+import styles from "../styles/MintEvent.module.css";
 
 const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
   const currentWallet = useAddress();
   const twAccount = useActiveAccount();
   const twChain = useActiveWalletChain();
   const twWallet = useActiveWallet();
+  const [provider, setProvider] = useState(null);
 
   console.log("twAccount");
   console.log(twAccount);
@@ -70,7 +72,7 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
 
     await switchToOptimism();
     try {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      setProvider(new ethers.providers.Web3Provider(window.ethereum));
     } catch (error) {
       console.log("provider");
       console.log(error);
