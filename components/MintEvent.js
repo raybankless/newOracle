@@ -11,6 +11,8 @@ import { createWalletClient, custom } from "viem";
 
 const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
   const currentWallet = useAddress();
+  const [account, setAccount] = useState(null);
+  const [address, setAddress] = useState(null);
 
   async function switchToOptimism() {
     if (window.ethereum) {
@@ -53,19 +55,24 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
     }
 
     await switchToOptimism();
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    await provider.send("eth_accounts", []);
-    const account = await ethereum.request({ method: "eth_accounts" });
-    const address = account[0];
-    
+    try {
+      await window.ethereum.request({ method: "eth_requestAccounts" }); // Request user to connect their MetaMask
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      await provider.send("eth_accounts", []);
+      setAccount (await ethereum.request({ method: "eth_accounts" }));
+      setAddress  (await signer.getAddress());
+    } catch (error) {
+      console.error("Error connecting to MetaMask:", error);
+    }
+
     console.log("provider");
     console.log(provider);
     console.log("account");
     console.log(account);
     console.log("adress");
     console.log(address);
-    
-    
+
     const wallet = createWalletClient({
       account: address,
       chain: optimism,
@@ -133,11 +140,13 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
     }
   };
 
-  return( 
+  return (
     <div className={styles.mintButtonContainer}>
-    <button className={styles.mintButton} onClick={mintEvent}>Mint Hypercert</button>
+      <button className={styles.mintButton} onClick={mintEvent}>
+        Mint Hypercert
+      </button>
     </div>
-  )
+  );
 };
 
 export default MintEventButton;
