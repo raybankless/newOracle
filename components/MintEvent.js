@@ -1,11 +1,5 @@
-import React, { useState } from "react";
 import { useAddress } from "@thirdweb-dev/react";
-import {
-  useActiveAccount,
-  useActiveWallet,
-  useActiveWalletChain,
-  s,
-} from "thirdweb/react";
+
 import { ethers } from "ethers";
 import {
   HypercertClient,
@@ -18,17 +12,6 @@ import styles from "../styles/MintEvent.module.css";
 
 const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
   const currentWallet = useAddress();
-  const twAccount = useActiveAccount();
-  const twChain = useActiveWalletChain();
-  const twWallet = useActiveWallet();
-  const [provider, setProvider] = useState(null);
-
-  console.log("twAccount");
-  console.log(twAccount);
-  console.log("twChain");
-  console.log(twChain);
-  console.log("twWallet");
-  console.log(twWallet);
 
   async function switchToOptimism() {
     if (window.ethereum) {
