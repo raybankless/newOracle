@@ -54,14 +54,12 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
 
     await switchToOptimism();
     const provider = new ethers.providers.Web3Provider(window.ethereum);
-
-      console.log("provider");
-      console.log(provider);
-
     await provider.send("eth_accounts", []);
     const account = await ethereum.request({ method: "eth_accounts" });
     const address = account[0];
     
+    console.log("provider");
+    console.log(provider);
     console.log("account");
     console.log(account);
     console.log("adress");
