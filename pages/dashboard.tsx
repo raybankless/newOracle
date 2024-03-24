@@ -1,7 +1,10 @@
+// dashboard.tsx
 import { NextPage } from "next";
 import { ConnectWallet } from "@thirdweb-dev/react";
 import styles from "../styles/Dashboard.module.css"; // Ensure you have this CSS file in your styles directory
 import { useRouter } from "next/router";
+import ListEvent from "../components/ListEvent";
+
 
 const Dashboard: NextPage = () => {
   const router = useRouter();
@@ -10,6 +13,8 @@ const Dashboard: NextPage = () => {
   const navigateToEvents = () => {
     router.push("/events");
   };
+
+ 
 
   return (
     <div className={styles.dashboard}>
@@ -29,7 +34,7 @@ const Dashboard: NextPage = () => {
 
       <section className={styles.collection}>
         <h2 className={styles.collectionTitle}>My Collection</h2>
-        {/* Collection items will be mapped here */}
+        <ListEvent />
       </section>
     </div>
   );

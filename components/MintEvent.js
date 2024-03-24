@@ -109,17 +109,6 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
       const units = BigInt(100);
       const restrictions = TransferRestrictions.FromCreatorOnly;
 
-      /*  // Mint the Hypercert with contract interaction
-            try {
-              console.log("hypercertData");
-              console.log(hypercertData);
-              const tx = await contract.mintClaim(address, units, hypercertData, restrictions);
-              await tx.wait(); // Wait for the transaction to be mined
-              console.log("Mint successful", tx);
-            } catch (error) {
-              console.error("Mint failed", error);
-            }*/
-
       // Mint the Hypercert with hypercert client
       const client = new HypercertClient({
         chain: { id: 10 },

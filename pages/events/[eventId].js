@@ -96,7 +96,6 @@ export default function EventDetail() {
       const wallet =  createWalletClient({
         account : address,
         chain : optimism,
-        
         transport : custom (window.ethereum),
       })
       console.log(wallet)
