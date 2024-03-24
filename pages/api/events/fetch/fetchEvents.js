@@ -37,17 +37,21 @@ export async function fetchEvents(setEventsCallback) {
           return null;
         }
 
-        if (metadata.description.startsWith("GoodOracle Event:")) {
-          try {
-            const metadata = await client.storage.getMetadata(event.uri);
+        try {
+          const metadata = await client.storage.getMetadata(event.uri);
+          // Check if the description starts with "GoodOracle Event"
+          if (metadata.description.startsWith("GoodOracle Event:")) {
             return {
               ...event,
               metadata: metadata,
             };
-          } catch (error) {
-            console.error(`Failed to fetch metadata for event:`, error);
+          } else {
+            console.log(`Skipping event as it's not marked as a GoodOracle Event: ${metadata.description}`);
             return null;
           }
+        } catch (error) {
+          console.error(`Failed to fetch metadata for event:`, error);
+          return null;
         }
       }),
     );

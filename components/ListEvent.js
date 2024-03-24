@@ -9,6 +9,7 @@ const ListEvent = () => {
     useEffect(() => {
       fetchEvents(setEvents); // Pass the setState function as a callback
     }, []);
+  console.log("LIST EVENT - events ");
   console.log(events);
   return (
     <div className={styles.listEventsContainer}>
