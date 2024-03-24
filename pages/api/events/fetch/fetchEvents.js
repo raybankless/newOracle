@@ -30,26 +30,32 @@ export async function fetchEvents(setEventsCallback) {
     const eventsWithMetadata = await Promise.all(
       ownedEvents.claims.map(async (event) => {
         // Skip fetching metadata for events with invalid or empty URIs
-        if (!event.uri || event.uri.startsWith('{') || event.uri === '') {
-          console.log(`Skipping event due to invalid or empty URI: ${event.uri}`);
+        if (!event.uri || event.uri.startsWith("{") || event.uri === "") {
+          console.log(
+            `Skipping event due to invalid or empty URI: ${event.uri}`,
+          );
           return null;
         }
 
-        try {
-          const metadata = await client.storage.getMetadata(event.uri);
-          return {
-            ...event,
-            metadata: metadata,
-          };
-        } catch (error) {
-          console.error(`Failed to fetch metadata for event:`, error);
-          return null;
+        if (metadata.description.startsWith("GoodOracle Event:")) {
+          try {
+            const metadata = await client.storage.getMetadata(event.uri);
+            return {
+              ...event,
+              metadata: metadata,
+            };
+          } catch (error) {
+            console.error(`Failed to fetch metadata for event:`, error);
+            return null;
+          }
         }
-      })
+      }),
     );
 
     // Filter out null values (events without valid metadata)
-    const validEventsWithMetadata = eventsWithMetadata.filter(event => event !== null);
+    const validEventsWithMetadata = eventsWithMetadata.filter(
+      (event) => event !== null,
+    );
     setEventsCallback(validEventsWithMetadata);
   } catch (error) {
     console.error("Failed to fetch owned events:", error);

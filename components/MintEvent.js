@@ -1,3 +1,5 @@
+// components/MintEvent.js
+
 import { useAddress } from "@thirdweb-dev/react";
 import styles from "../styles/MintEvent.module.css";
 import { ethers } from "ethers";
@@ -85,7 +87,7 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
         errors,
       } = formatHypercertData({
         name: event.name,
-        description: `${event.location}  -  ${event.description}`,
+        description: `GoodOracle Event: ${event.name} - ${event.location} - ${event.description}`,
         image: event.headerImage,
         external_url: event.additionalInfoLink,
         impactScope: [],
