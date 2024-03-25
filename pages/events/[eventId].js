@@ -22,16 +22,34 @@ export default function EventDetail() {
 
   useEffect(() => {
     if (!eventId) return;
-    fetchEventDetails();
-
+    console.log("Fetching event details for eventId:", eventId);
+    fetch(`/api/events/${eventId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          console.log("Event details fetched successfully:", data.event);
+          setEvent(data.event);
+        } else {
+          // Redirect or handle the error if the event is not found
+          router.push("/events");
+        }
+      })
+      .catch((error) => {
+        console.error("Could not fetch the event:", error);
+        router.push("/events");
+      });
     if (typeof window !== "undefined") {
-      const qrAction = sessionStorage.getItem("qrAction");
-      if (qrAction && qrAction === "contribute") {
+      const queryParams = new URLSearchParams(window.location.search);
+      const qrAction = queryParams.get("qr");
+      if (
+        qrAction === "contribute" &&
+        currentWallet &&
+        event &&
+        currentWallet.toLowerCase() !== event.creatorWallet.toLowerCase()
+      ) {
         requestContributionSignature();
-        sessionStorage.removeItem("qrAction"); // Clear the QR action
       }
     }
-
     if (showQRModal) {
       setQrValue(
         `${window.location.href}?qr=contribute&ts=${new Date().getTime()}`,
@@ -39,26 +57,38 @@ export default function EventDetail() {
     }
   }, [eventId, currentWallet, router, showQRModal]);
 
-  const fetchEventDetails = async () => {
-    const response = await fetch(`/api/events/${eventId}`);
-    const data = await response.json();
-    if (data.success) {
-      setEvent(data.event);
-    } else {
-      router.push("/events");
-    }
-  };
+  const showLoginButton = !currentWallet;
+  const showEndEventButton =
+    currentWallet && event?.creatorWallet === currentWallet;
 
   const requestContributionSignature = async () => {
+    // if (!window.ethereum)
+    // return alert("MetaMask is required to sign messages.");
+
     try {
-      const message = `Adding contribution to ${event?.name}.`;
-      const signature = await embeddedWallet.sign(message);
+      /*  const message = `Adding contribution to ${event?.name}.`;
+      const signer = new ethers.providers.Web3Provider(
+        window.ethereum,
+      ).getSigner();
+      const signature = await signer.signMessage(message);
+*/
+      const signature = embeddedWallet.sign(
+        `Adding contribution to ${event?.name}.`,
+      );
       if (signature) {
+        console.log("Contribution signature:", signature);
+        // Proceed to verify the signature and update the allowlist
+        // Display the signature in a warning message
         setWarningMessage(`Signature: ${signature}`);
         setShowWarning(true);
+
         updateAllowlist(currentWallet);
-      } else {
-        setWarningMessage("Signature Failed");
+      } else if (
+        signature === null ||
+        signature === undefined ||
+        signature === ""
+      ) {
+        setWarningMessage(`Signature Failed`);
         setShowWarning(true);
       }
     } catch (error) {
@@ -66,38 +96,70 @@ export default function EventDetail() {
     }
   };
 
+  const QRModal = () => (
+    <ContributionModal show={showQRModal} onClose={() => setShowQRModal(false)}>
+      <QRCode value={qrValue} size={256} />
+      {/* You can add more inputs under the QR code here */}
+    </ContributionModal>
+  );
+
+  // Function to update allowlist
   const updateAllowlist = async (userAddress) => {
+    // Verify the signature in your backend before updating
+    // Assuming verification is done, call updateEvent API to update allowlist
     const response = await fetch(`/api/events/updateEvent/${eventId}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ update: { $push: { allowListed: userAddress } } }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        update: {
+          $push: { allowListed: userAddress },
+        },
+      }),
     });
+
     const data = await response.json();
-    if (!data.success) {
+    if (data.success) {
+      console.log("Allowlist updated successfully");
+      // Refresh the page or update the state as needed
+    } else {
       console.error("Failed to update allowlist:", data.message);
     }
   };
 
+  if (!event) return <div className={styles.loading}>Loading...</div>;
+
   return (
     <div className={styles.container}>
       <HomeButton />
-      <h1 className={styles.textBlack}>{event?.name}</h1>
-      <p className={styles.textBlack}>{event?.description}</p>
-      <p className={styles.textBlack}>{event?.creatorWallet}</p>
-      <p className={styles.textBlack}>{event?.startDate}</p>
-      {currentWallet && event?.creatorWallet === currentWallet && (
-        <button onClick={() => setShowQRModal(true)}>Add Contribution</button>
+      <h1 className={styles.textBlack}>{event.name}</h1>
+      <p className={styles.textBlack}>{event.description}</p>
+      <p className={styles.textBlack}>{event.creatorWallet}</p>
+      <p className={styles.textBlack}>{event.startDate}</p>
+      {/* Conditional button rendering based on user connection and role */}
+      {showLoginButton && (
+        <button
+          className={styles.loginButton}
+          onClick={() => setShowLoginModal(true)}
+        >
+          Log In
+        </button>
+      )}
+      {showEndEventButton && (
+        <div>
+          <button onClick={() => setShowQRModal(true)}>Add Contribution</button>
+          <MintEventButton
+            event={event}
+            onMintSuccess={(tx) => console.log("Minted successfully", tx)}
+            onMintError={(error) => console.error("Minting error", error)}
+          />
+        </div>
       )}
       {showLoginModal && (
         <LoginModal onClose={() => setShowLoginModal(false)} />
       )}
       {showQRModal && <QRModal />}
-      {showWarning && (
-        <div className="warningMessage">
-          <p>{warningMessage}</p>
-          <button onClick={() => setShowWarning(false)}>Close</button>
-        </div>
-      )}
     </div>
   );
 }
