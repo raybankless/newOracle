@@ -18,6 +18,7 @@
     "mongodb": "^6.5.0",
     "mongoose": "^8.2.1",
     "next": "^13",
+    "qrcode.react": "^3.1.0",
     "react": "^18.2",
     "react-dom": "^18.2",
     "thirdweb": "^1.0.0-beta-75bec3710151c4255c8314e3ce8dd366265b6c58-20240317031400",

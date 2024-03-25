@@ -1,19 +1,14 @@
 // pages/events/[eventId].js -shows single event, event settings, mint event
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { useAddress } from "@thirdweb-dev/react";
-import {
-  HypercertClient,
-  formatHypercertData,
-  TransferRestrictions,
-} from "@hypercerts-org/sdk";
+import { useAddress, embeddedWallet } from "@thirdweb-dev/react";
 import HomeButton from "../../components/HomeButton";
 import LoginModal from "../../components/LoginModal";
+import ContributionModal from "../../components/AddContributionModal";
 import MintEventButton from "../../components/MintEvent";
 import styles from "../../styles/EventDetail.module.css";
+import QRCode from "qrcode.react";
 import { ethers } from "ethers";
-import { createWalletClient, custom } from "viem";
-import { optimism } from "viem/chains";
 
 export default function EventDetail() {
   const router = useRouter();
@@ -21,7 +16,8 @@ export default function EventDetail() {
   const [event, setEvent] = useState(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const currentWallet = useAddress();
-  const [hypercertData, setHypercertData] = useState("");
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [qrValue, setQrValue] = useState("");
 
   useEffect(() => {
     if (!eventId) return;
@@ -41,127 +37,80 @@ export default function EventDetail() {
         console.error("Could not fetch the event:", error);
         router.push("/events");
       });
-  }, [eventId, currentWallet, router]);
-
-  async function switchToOptimism() {
-    if (window.ethereum) {
-      try {
-        // Request to switch to the Optimism network (Mainnet)
-        await window.ethereum.request({
-          method: "wallet_switchEthereumChain",
-          params: [{ chainId: "0xa" }],
-        });
-      } catch (switchError) {
-        // This error code indicates that the chain has not been added to MetaMask
-        if (switchError.code === 4902) {
-          try {
-            // Request to add the Optimism network to MetaMask
-            await window.ethereum.request({
-              method: "wallet_addEthereumChain",
-              params: [
-                {
-                  chainId: "0xa",
-                  rpcUrl: "https://mainnet.optimism.io",
-                  // Additional parameters like the chain name, symbol, and block explorer can be added here
-                },
-              ],
-            });
-          } catch (addError) {
-            console.error("Error adding Optimism network:", addError);
-          }
-        }
-        console.error("Error switching to Optimism network:", switchError);
+    if (typeof window !== "undefined") {
+      const queryParams = new URLSearchParams(window.location.search);
+      const qrAction = queryParams.get("qr");
+      if (
+        qrAction === "contribute" &&
+        currentWallet &&
+        event &&
+        currentWallet.toLowerCase() !== event.creatorWallet.toLowerCase()
+      ) {
+        requestContributionSignature();
       }
-    } else {
-      console.log("MetaMask is not installed!");
     }
-  }
-
-  // Function to end the event and create a Hypercert
-  const endEvent = async () => {
-    const response = await fetch(`/api/events/endEvent/${eventId}`, {
-      method: "POST",
-    });
-    const data = await response.json();
-
-    if (data.success) {
-      await switchToOptimism();
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_accounts", []);
-      const account = await ethereum.request({ method: "eth_accounts" });
-      const address = account[0];
-      const wallet = createWalletClient({
-        account: address,
-        chain: optimism,
-        transport: custom(window.ethereum),
-      });
-      console.log(wallet);
-
-      try {
-        const {
-          data: metadata,
-          valid,
-          errors,
-        } = formatHypercertData({
-          name: event.name,
-          description: `${event.location}  -  ${event.description}`,
-          image: event.headerImage,
-          external_url: event.additionalInfoLink,
-          impactScope: [],
-          workTimeframeStart: Math.floor(
-            new Date(event.startDate).getTime() / 1000,
-          ),
-          workTimeframeEnd: Math.floor(
-            new Date(event.endDate).getTime() / 1000,
-          ),
-          impactTimeframeStart: Math.floor(
-            new Date(event.startDate).getTime() / 1000,
-          ),
-          impactTimeframeEnd: 0,
-          workScope: event.scopeOfWork,
-          contributors: [`Event Admin: ${event.creatorWallet}`],
-          rights: ["Public Display"],
-        });
-        if (!valid) {
-          console.error("Metadata validation failed:", errors);
-          return;
-        }
-        setHypercertData(JSON.stringify(metadata));
-
-        const units = BigInt(100);
-        const restrictions = TransferRestrictions.FromCreatorOnly;
-
-        // Mint the Hypercert with hypercert client
-        const client = new HypercertClient({
-          chain: { id: 10 },
-          walletClient: wallet,
-          easContractAddress: currentWallet,
-        });
-
-        console.log("hypertcertData");
-        console.log(hypercertData);
-        console.log("metadata");
-        console.log(metadata);
-
-        try {
-          const tx = await client.mintClaim(metadata, units, restrictions);
-          console.log("Hypercert minted:", tx);
-        } catch (mintError) {
-          console.error("tx error:", mintError);
-          console.error("tx error:", mintError.transcationHash);
-          console.error("tx error.payload:", mintError.payload);
-        }
-      } catch (error) {
-        console.error("Failed to create Hypercert:", error);
-      }
-    } else {
-      alert("Failed to end the event.");
+    if (showQRModal) {
+      setQrValue(`${window.location.href}?qr=contribute&ts=${new Date().getTime()}`);
     }
-  };
+  }, [eventId, currentWallet, router, showQRModal]);
 
   const showLoginButton = !currentWallet;
   const showEndEventButton =
     currentWallet && event?.creatorWallet === currentWallet;
+
+  const requestContributionSignature = async () => {
+   // if (!window.ethereum)
+     // return alert("MetaMask is required to sign messages.");
+
+    try {
+    /*  const message = `Adding contribution to ${event?.name}.`;
+      const signer = new ethers.providers.Web3Provider(
+        window.ethereum,
+      ).getSigner();
+      const signature = await signer.signMessage(message);
+*/
+      const signature = embeddedWallet.sign(
+        `Adding contribution to ${event?.name}.`
+      )
+      // Proceed to verify the signature and update the allowlist
+      updateAllowlist(signature);
+    } catch (error) {
+      console.error("Error signing message for contribution:", error);
+    }
+  };
+
+  const QRModal = () => (
+    <ContributionModal show={showQRModal} onClose={() => setShowQRModal(false)}>
+      <QRCode value={qrValue} size={256} />
+      {/* You can add more inputs under the QR code here */}
+    </ContributionModal>
+  );
+  
+
+  // Function to update allowlist
+  const updateAllowlist = async (signature) => {
+    // Verify the signature in your backend before updating
+    // Assuming verification is done, call updateEvent API to update allowlist
+    const response = await fetch(`/api/events/updateEvent/${eventId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        update: {
+          $push: { allowListed: currentWallet },
+        },
+      }),
+    });
+
+    const data = await response.json();
+    if (data.success) {
+      console.log("Allowlist updated successfully");
+      // Refresh the page or update the state as needed
+    } else {
+      console.error("Failed to update allowlist:", data.message);
+    }
+  };
 
   if (!event) return <div className={styles.loading}>Loading...</div>;
 
@@ -183,6 +132,12 @@ export default function EventDetail() {
       )}
       {showEndEventButton && (
         <div>
+          <button
+            
+            onClick={() => setShowQRModal(true)}
+          >
+            Add Contribution
+          </button>
           <MintEventButton
             event={event}
             onMintSuccess={(tx) => console.log("Minted successfully", tx)}
@@ -193,6 +148,7 @@ export default function EventDetail() {
       {showLoginModal && (
         <LoginModal onClose={() => setShowLoginModal(false)} />
       )}
+      {showQRModal && <QRModal />}
     </div>
   );
 }
