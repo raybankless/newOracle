@@ -8,7 +8,6 @@ import ContributionModal from "../../components/AddContributionModal";
 import MintEventButton from "../../components/MintEvent";
 import styles from "../../styles/EventDetail.module.css";
 import QRCode from "qrcode.react";
-import { ethers } from "ethers";
 
 export default function EventDetail() {
   const router = useRouter();
@@ -98,10 +97,11 @@ export default function EventDetail() {
       },
       body: JSON.stringify({
         update: {
-          $push: { allowListed: currentWallet },
+          $push: { allowListed: signature },
         },
       }),
     });
+
 
     const data = await response.json();
     if (data.success) {
