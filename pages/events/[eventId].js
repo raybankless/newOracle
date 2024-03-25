@@ -71,6 +71,7 @@ export default function EventDetail() {
       const signature = embeddedWallet.sign(
         `Adding contribution to ${event?.name}.`
       )
+      console.log("Contribution signature:", signature);
       // Proceed to verify the signature and update the allowlist
       updateAllowlist(currentWallet);
     } catch (error) {
