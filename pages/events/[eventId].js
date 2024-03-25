@@ -17,6 +17,8 @@ export default function EventDetail() {
   const currentWallet = useAddress();
   const [showQRModal, setShowQRModal] = useState(false);
   const [qrValue, setQrValue] = useState("");
+  const [showWarning, setShowWarning] = useState(false);
+  const [warningMessage, setWarningMessage] = useState("");
 
   useEffect(() => {
     if (!eventId) return;
@@ -49,7 +51,9 @@ export default function EventDetail() {
       }
     }
     if (showQRModal) {
-      setQrValue(`${window.location.href}?qr=contribute&ts=${new Date().getTime()}`);
+      setQrValue(
+        `${window.location.href}?qr=contribute&ts=${new Date().getTime()}`,
+      );
     }
   }, [eventId, currentWallet, router, showQRModal]);
 
@@ -58,21 +62,25 @@ export default function EventDetail() {
     currentWallet && event?.creatorWallet === currentWallet;
 
   const requestContributionSignature = async () => {
-   // if (!window.ethereum)
-     // return alert("MetaMask is required to sign messages.");
+    // if (!window.ethereum)
+    // return alert("MetaMask is required to sign messages.");
 
     try {
-    /*  const message = `Adding contribution to ${event?.name}.`;
+      /*  const message = `Adding contribution to ${event?.name}.`;
       const signer = new ethers.providers.Web3Provider(
         window.ethereum,
       ).getSigner();
       const signature = await signer.signMessage(message);
 */
       const signature = embeddedWallet.sign(
-        `Adding contribution to ${event?.name}.`
-      )
+        `Adding contribution to ${event?.name}.`,
+      );
       console.log("Contribution signature:", signature);
       // Proceed to verify the signature and update the allowlist
+      // Display the signature in a warning message
+      setWarningMessage(`Signature: ${signature}`);
+      setShowWarning(true);
+
       updateAllowlist(currentWallet);
     } catch (error) {
       console.error("Error signing message for contribution:", error);
@@ -85,7 +93,6 @@ export default function EventDetail() {
       {/* You can add more inputs under the QR code here */}
     </ContributionModal>
   );
-  
 
   // Function to update allowlist
   const updateAllowlist = async (userAddress) => {
@@ -102,7 +109,6 @@ export default function EventDetail() {
         },
       }),
     });
-
 
     const data = await response.json();
     if (data.success) {
@@ -133,12 +139,7 @@ export default function EventDetail() {
       )}
       {showEndEventButton && (
         <div>
-          <button
-            
-            onClick={() => setShowQRModal(true)}
-          >
-            Add Contribution
-          </button>
+          <button onClick={() => setShowQRModal(true)}>Add Contribution</button>
           <MintEventButton
             event={event}
             onMintSuccess={(tx) => console.log("Minted successfully", tx)}
