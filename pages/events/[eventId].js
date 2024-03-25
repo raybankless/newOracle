@@ -75,6 +75,8 @@ export default function EventDetail() {
       const signature = embeddedWallet.sign(
         `Adding contribution to ${event?.name}.`,
       );
+      if (signature)
+      {
       console.log("Contribution signature:", signature);
       // Proceed to verify the signature and update the allowlist
       // Display the signature in a warning message
@@ -82,6 +84,10 @@ export default function EventDetail() {
       setShowWarning(true);
 
       updateAllowlist(currentWallet);
+      }else if (signature === null || signature === undefined || signature === ""){
+        setWarningMessage(`Signature Failed`);
+        setShowWarning(true);
+      }
     } catch (error) {
       console.error("Error signing message for contribution:", error);
     }
