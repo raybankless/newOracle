@@ -17,7 +17,8 @@ const eventSchema = new mongoose.Schema({
   }],
   whiteListed: [{
     type: String,
-  }]
+  }],
+  txHash: String,
 }, { timestamps: true });
 
 export default mongoose.models.Event || mongoose.model('Event', eventSchema);

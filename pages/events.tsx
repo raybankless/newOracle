@@ -1,3 +1,5 @@
+// events.tsx - shows ll events of currentWallet.
+
 import { NextPage } from "next";
 import { useEffect, useState } from "react";
 import styles from "../styles/Events.module.css";
@@ -8,7 +10,7 @@ import Link from "next/link";
 const Events: NextPage = () => {
   const currentWallet = useAddress();
   const [showModal, setShowModal] = useState(false); // State to manage modal visibility
-  const [events, setEvents] = useState<any[]>([]); // Adjust typing as necessary
+  const [events, setEvents] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -16,8 +18,11 @@ const Events: NextPage = () => {
         try {
           const res = await fetch(`/api/${currentWallet}`);
           const { data } = await res.json();
-          console.log(data);
-          setEvents(data);
+
+          const sortedEvents = data.sort((a: any, b: any) => {
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          });
+          setEvents(sortedEvents);
         } catch (error) {
           console.error("Failed to fetch events:", error);
           // Handle error appropriately, possibly updating UI to inform the user
@@ -187,37 +192,35 @@ const Events: NextPage = () => {
     );
   };
 
-  return (
-    <div className={styles.eventsPage}>
-      <HomeButton />
-      <ConnectWallet />
-      <button className={styles.button} onClick={() => setShowModal(true)}>
-        Create Event
-      </button>
-      <h1 className={styles.textBlack}>Events</h1>
-      {events.length > 0 ? (
-        <div className={styles.eventsList}>
-          {events.map((event) => (
-            <Link key={event._id} href={`/events/${event._id}`} passHref>
-              <a className="eventItem">
-                <div key={event._id} className={styles.eventItem}>
-                  <h2 className={styles.textBlack}>{event.name}</h2>
-                  <p className={styles.textBlack}>{event.description}</p>
-                  <p className={styles.textBlack}>{event.creatorWallet}</p>
-                  {/* Display other event details as needed */}
-                </div>
-              </a>
-            </Link>
-          ))}
-        </div>
-      ) : (
-        <p>No events found for this wallet.</p>
-      )}
-      {showModal && <Modal />}
-    </div>
-  );
+return (
+  <div className={styles.eventsPage}>
+    <HomeButton />
+    <ConnectWallet />
+    <button className={styles.button} onClick={() => setShowModal(true)}>
+      Create Event
+    </button>
+    <h1 className={styles.textBlack}>Events</h1>
+    {events.length > 0 ? (
+      <div className={styles.eventsList}>
+        {events.map((event) => (
+          <Link key={event._id} href={`/events/${event._id}`} passHref>
+            <a className="eventItem">
+              <div key={event._id} className={styles.eventItem}>
+                <h2 className={styles.textBlack}>{event.name}</h2>
+                <p className={styles.textBlack}>{event.description}</p>
+                <p className={styles.textBlack}>{event.creatorWallet}</p>
+                {/* Additional event details as desired */}
+              </div>
+            </a>
+          </Link>
+        ))}
+      </div>
+    ) : (
+      <p>No events found for this wallet.</p>
+    )}
+    {showModal && <Modal />}
+  </div>
+);
 };
 
 export default Events;
-
-

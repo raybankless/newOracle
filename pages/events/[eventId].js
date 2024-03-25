@@ -1,4 +1,4 @@
-// pages/events/[eventId].js
+// pages/events/[eventId].js -shows single event, event settings, mint event
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useAddress } from "@thirdweb-dev/react";
@@ -12,9 +12,8 @@ import LoginModal from "../../components/LoginModal";
 import MintEventButton from "../../components/MintEvent";
 import styles from "../../styles/EventDetail.module.css";
 import { ethers } from "ethers";
-import hypercertABI from "../../abis/hypercertABI.json";
-import { createWalletClient, custom } from 'viem';
-import {optimism} from "viem/chains";
+import { createWalletClient, custom } from "viem";
+import { optimism } from "viem/chains";
 
 export default function EventDetail() {
   const router = useRouter();
@@ -22,9 +21,7 @@ export default function EventDetail() {
   const [event, setEvent] = useState(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const currentWallet = useAddress();
-  const contractAddress = "0x822F17A9A5EeCFd66dBAFf7946a8071C265D1d07";
   const [hypercertData, setHypercertData] = useState("");
-  
 
   useEffect(() => {
     if (!eventId) return;
@@ -51,8 +48,8 @@ export default function EventDetail() {
       try {
         // Request to switch to the Optimism network (Mainnet)
         await window.ethereum.request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: '0xa' }], // 0xa is the chain ID for Optimism Mainnet
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: "0xa" }],
         });
       } catch (switchError) {
         // This error code indicates that the chain has not been added to MetaMask
@@ -60,47 +57,46 @@ export default function EventDetail() {
           try {
             // Request to add the Optimism network to MetaMask
             await window.ethereum.request({
-              method: 'wallet_addEthereumChain',
-              params: [{
-                chainId: '0xa',
-                rpcUrl: 'https://mainnet.optimism.io',
-                // Additional parameters like the chain name, symbol, and block explorer can be added here
-              }],
+              method: "wallet_addEthereumChain",
+              params: [
+                {
+                  chainId: "0xa",
+                  rpcUrl: "https://mainnet.optimism.io",
+                  // Additional parameters like the chain name, symbol, and block explorer can be added here
+                },
+              ],
             });
           } catch (addError) {
-            console.error('Error adding Optimism network:', addError);
+            console.error("Error adding Optimism network:", addError);
           }
         }
-        console.error('Error switching to Optimism network:', switchError);
+        console.error("Error switching to Optimism network:", switchError);
       }
     } else {
-      console.log('MetaMask is not installed!');
+      console.log("MetaMask is not installed!");
     }
   }
 
   // Function to end the event and create a Hypercert
   const endEvent = async () => {
-    
     const response = await fetch(`/api/events/endEvent/${eventId}`, {
       method: "POST",
     });
     const data = await response.json();
-    
+
     if (data.success) {
       await switchToOptimism();
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       await provider.send("eth_accounts", []);
-      const account = await ethereum.request({method: 'eth_accounts'});
-      const signer = provider.getSigner();
+      const account = await ethereum.request({ method: "eth_accounts" });
       const address = account[0];
-      const wallet =  createWalletClient({
-        account : address,
-        chain : optimism,
-        transport : custom (window.ethereum),
-      })
-      console.log(wallet)
-      
-      const contract = new ethers.Contract(contractAddress, hypercertABI, signer);
+      const wallet = createWalletClient({
+        account: address,
+        chain: optimism,
+        transport: custom(window.ethereum),
+      });
+      console.log(wallet);
+
       try {
         const {
           data: metadata,
@@ -130,61 +126,39 @@ export default function EventDetail() {
           console.error("Metadata validation failed:", errors);
           return;
         }
-        setHypercertData(JSON.stringify(metadata)); 
-        
-        
+        setHypercertData(JSON.stringify(metadata));
+
         const units = BigInt(100);
         const restrictions = TransferRestrictions.FromCreatorOnly;
-        
-            /*  // Mint the Hypercert with contract interaction
-              try {
-                console.log("hypercertData");
-                console.log(hypercertData);
-                const tx = await contract.mintClaim(address, units, hypercertData, restrictions);
-                await tx.wait(); // Wait for the transaction to be mined
-                console.log("Mint successful", tx);
-              } catch (error) {
-                console.error("Mint failed", error);
-              }*/
 
-         // Mint the Hypercert with hypercert client
+        // Mint the Hypercert with hypercert client
         const client = new HypercertClient({
-          chain : { id: 10 },
+          chain: { id: 10 },
           walletClient: wallet,
-          easContractAddress : currentWallet,
+          easContractAddress: currentWallet,
         });
-        
+
         console.log("hypertcertData");
         console.log(hypercertData);
         console.log("metadata");
         console.log(metadata);
 
-        
-       try {
-          const tx = await client.mintClaim(
-            metadata,
-            units,
-            restrictions,
-          );
+        try {
+          const tx = await client.mintClaim(metadata, units, restrictions);
           console.log("Hypercert minted:", tx);
         } catch (mintError) {
-          console.error("tx error:", mintError );
-         console.error("tx error:", mintError.transcationHash );
-         console.error("tx error.payload:", mintError.payload );
+          console.error("tx error:", mintError);
+          console.error("tx error:", mintError.transcationHash);
+          console.error("tx error.payload:", mintError.payload);
         }
-      
-
-
-
       } catch (error) {
         console.error("Failed to create Hypercert:", error);
       }
-    
     } else {
       alert("Failed to end the event.");
     }
   };
-  
+
   const showLoginButton = !currentWallet;
   const showEndEventButton =
     currentWallet && event?.creatorWallet === currentWallet;
@@ -209,13 +183,10 @@ export default function EventDetail() {
       )}
       {showEndEventButton && (
         <div>
-          <button onClick={endEvent} className={styles.endEventButton}>
-            End Event
-          </button>
-          <MintEventButton 
-            event={event} 
-            onMintSuccess={(tx) => console.log('Minted successfully', tx)}
-            onMintError={(error) => console.error('Minting error', error)}
+          <MintEventButton
+            event={event}
+            onMintSuccess={(tx) => console.log("Minted successfully", tx)}
+            onMintError={(error) => console.error("Minting error", error)}
           />
         </div>
       )}

@@ -58,15 +58,15 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
     }
 
     await switchToOptimism();
-    
-      await window.ethereum.request({ method: "eth_requestAccounts" }); // Request user to connect their MetaMask
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      await provider.send("eth_accounts", []);
-      const tempAccount = await ethereum.request({ method: "eth_accounts" });
-      const tempAddress = await signer.getAddress();
-      setAccount(tempAccount);
-      setAddress(tempAddress);
+
+    await window.ethereum.request({ method: "eth_requestAccounts" }); // Request user to connect their MetaMask
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+    await provider.send("eth_accounts", []);
+    const tempAccount = await ethereum.request({ method: "eth_accounts" });
+    const tempAddress = await signer.getAddress();
+    setAccount(tempAccount);
+    setAddress(tempAddress);
 
     console.log("account");
     console.log(account);
@@ -111,21 +111,45 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
       const units = BigInt(100);
       const restrictions = TransferRestrictions.FromCreatorOnly;
 
-      // Mint the Hypercert with hypercert client
+      // Minting the Hypercert
       const client = new HypercertClient({
         chain: { id: 10 },
         walletClient: wallet,
         easContractAddress: currentWallet,
       });
 
-      try {
-        const tx = await client.mintClaim(metadata, units, restrictions);
-        onMintSuccess(tx);
-      } catch (mintError) {
-        onMintError(mintError);
-      }
+      const tx = await client.mintClaim(metadata, units, restrictions);
+
+      // Assuming `event._id` represents your event identifier
+      const eventId = event._id;
+
+      // Call the updated event API endpoint to store the tx hash
+      await fetch(`/api/events/updateEvent/${eventId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          update: { txHash: tx },
+        }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            console.log("Transaction hash updated successfully:", data);
+            onMintSuccess(tx);
+          } else {
+            console.error("Failed to update transaction hash:", data.message);
+            onMintError(new Error("Failed to update transaction hash"));
+          }
+        })
+        .catch((error) => {
+          console.error("Error updating transaction hash:", error);
+          onMintError(error);
+        });
     } catch (error) {
-      console.error("Failed to create Hypercert:", error);
+      console.error("Failed to mint Hypercert:", error);
+      onMintError(error);
     }
   };
 

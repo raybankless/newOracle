@@ -1,4 +1,4 @@
-// pages/api/events/[walletAddress].js
+// pages/api/events/[currentWallet].js - get the events where currentWallet is the creatorWallet
 import dbConnect from '../../utils/dbConnect';
 import Event from '../../models/Event';
 

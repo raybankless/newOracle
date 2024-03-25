@@ -1,4 +1,4 @@
-// pages/api/events/[eventId].js
+// pages/api/events/[eventId].js - find the event with the given eventId
 import dbConnect from '../../../utils/dbConnect';
 import Event from '../../../models/Event';
 

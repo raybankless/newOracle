@@ -1,4 +1,4 @@
-// components/ListEvent.js
+// components/ListEvent.js - Lists events in Dashboard Page, My Collection section
 import React, { useEffect, useState } from "react";
 import { fetchEvents } from "../pages/api/events/fetch/fetchEvents"; // Adjust the import path as needed
 import styles from "../styles/ListEvent.module.css";
