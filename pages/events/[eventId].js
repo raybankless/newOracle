@@ -72,7 +72,7 @@ export default function EventDetail() {
         `Adding contribution to ${event?.name}.`
       )
       // Proceed to verify the signature and update the allowlist
-      updateAllowlist(signature);
+      updateAllowlist(currentWallet);
     } catch (error) {
       console.error("Error signing message for contribution:", error);
     }
@@ -87,7 +87,7 @@ export default function EventDetail() {
   
 
   // Function to update allowlist
-  const updateAllowlist = async (signature) => {
+  const updateAllowlist = async (userAddress) => {
     // Verify the signature in your backend before updating
     // Assuming verification is done, call updateEvent API to update allowlist
     const response = await fetch(`/api/events/updateEvent/${eventId}`, {
@@ -97,7 +97,7 @@ export default function EventDetail() {
       },
       body: JSON.stringify({
         update: {
-          $push: { allowListed: signature },
+          $push: { allowListed: userAddress },
         },
       }),
     });
