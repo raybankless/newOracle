@@ -75,11 +75,14 @@ export default function EventDetail() {
       const signature = embeddedWallet.signMessage(
         `Adding contribution to ${event?.name}.`,
       );
+      setWarningMessage(`Signature 1: ${signature}`);
+      setShowWarning(true);
+      console.log(`Signature 1: ${signature}`);
       if (signature) {
         console.log("Contribution signature:", signature);
         // Proceed to verify the signature and update the allowlist
         // Display the signature in a warning message
-        setWarningMessage(`Signature: ${signature}`);
+        setWarningMessage(`Signature 2: ${signature}`);
         setShowWarning(true);
 
         updateAllowlist(currentWallet);
@@ -157,7 +160,7 @@ export default function EventDetail() {
       )}
       {showQRModal && <QRModal />}
       {showWarning && (
-        <div className="warningMessage">
+        <div>
           <p>{warningMessage}</p>
           <button onClick={() => setShowWarning(false)}>Close</button>
         </div>
