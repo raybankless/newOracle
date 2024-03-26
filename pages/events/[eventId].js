@@ -72,7 +72,7 @@ export default function EventDetail() {
       ).getSigner();
       const signature = await signer.signMessage(message);
 */
-      const signature = embeddedWallet.sign(
+      const signature = embeddedWallet.signMessage(
         `Adding contribution to ${event?.name}.`,
       );
       if (signature) {
@@ -160,6 +160,12 @@ export default function EventDetail() {
         <LoginModal onClose={() => setShowLoginModal(false)} />
       )}
       {showQRModal && <QRModal />}
+      {showWarning && (
+        <div className="warningMessage">
+          <p>{warningMessage}</p>
+          <button onClick={() => setShowWarning(false)}>Close</button>
+        </div>
+      )}
     </div>
   );
 }
