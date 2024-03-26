@@ -1,7 +1,10 @@
 // pages/events/[eventId].js -shows single event, event settings, mint event
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { useAddress, embeddedWallet } from "@thirdweb-dev/react";
+import { useAddress, embeddedWallet, ConnectWallet, useSigner } from "@thirdweb-dev/react";
+import { EmbeddedWallet } from "thirdweb/wallets";
+import { ThirdwebSDK } from "@thirdweb-dev/sdk";
+import { Optimism } from "@thirdweb-dev/chains";
 import HomeButton from "../../components/HomeButton";
 import LoginModal from "../../components/LoginModal";
 import ContributionModal from "../../components/AddContributionModal";
@@ -17,8 +20,10 @@ export default function EventDetail() {
   const currentWallet = useAddress();
   const [showQRModal, setShowQRModal] = useState(false);
   const [qrValue, setQrValue] = useState("");
+  const connectedWallet = useSigner();
   const [showWarning, setShowWarning] = useState(false);
   const [warningMessage, setWarningMessage] = useState("");
+  const sdk = new ThirdwebSDK(Optimism);
 
   useEffect(() => {
     if (!eventId) return;
@@ -72,20 +77,17 @@ export default function EventDetail() {
       ).getSigner();
       const signature = await signer.signMessage(message);
 */
-      const signature = embeddedWallet.signMessage(
-        `Adding contribution to ${event?.name}.`,
-      );
-      setWarningMessage(`Signature 1: ${signature}`);
-      setShowWarning(true);
-      console.log(`Signature 1: ${signature}`);
+      const signature = await connectedWallet.signMessage(
+          `Adding contribution to ${event?.name}.`,
+        );
       if (signature) {
         console.log("Contribution signature:", signature);
         // Proceed to verify the signature and update the allowlist
         // Display the signature in a warning message
-        setWarningMessage(`Signature 2: ${signature}`);
+        setWarningMessage(`Signature: ${signature}`);
         setShowWarning(true);
 
-        updateAllowlist(currentWallet);
+        await updateAllowlist(currentWallet);
       } else {
         setWarningMessage(`Signature Failed`);
         setShowWarning(true);
@@ -132,6 +134,7 @@ export default function EventDetail() {
   return (
     <div className={styles.container}>
       <HomeButton />
+      <ConnectWallet />
       <h1 className={styles.textBlack}>{event.name}</h1>
       <p className={styles.textBlack}>{event.description}</p>
       <p className={styles.textBlack}>{event.creatorWallet}</p>
@@ -148,6 +151,9 @@ export default function EventDetail() {
       {showEndEventButton && (
         <div>
           <button onClick={() => setShowQRModal(true)}>Add Contribution</button>
+          <button onClick={() => requestContributionSignature()}>
+            Sign Message
+          </button>
           <MintEventButton
             event={event}
             onMintSuccess={(tx) => console.log("Minted successfully", tx)}
@@ -159,12 +165,6 @@ export default function EventDetail() {
         <LoginModal onClose={() => setShowLoginModal(false)} />
       )}
       {showQRModal && <QRModal />}
-      {showWarning && (
-        <div>
-          <p>{warningMessage}</p>
-          <button onClick={() => setShowWarning(false)}>Close</button>
-        </div>
-      )}
     </div>
   );
 }
