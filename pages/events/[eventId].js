@@ -83,11 +83,7 @@ export default function EventDetail() {
         setShowWarning(true);
 
         updateAllowlist(currentWallet);
-      } else if (
-        signature === null ||
-        signature === undefined ||
-        signature === ""
-      ) {
+      } else {
         setWarningMessage(`Signature Failed`);
         setShowWarning(true);
       }
