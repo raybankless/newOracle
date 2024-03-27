@@ -11,29 +11,31 @@ const ListEvent = () => {
     }, []);
   console.log("LIST EVENT - events ");
   console.log(events);
-  return (
-    <div className={styles.listEventsContainer}>
-      {events.length > 0 ? (
-        <ul className={styles.eventsList}>
-          {events.map((event, index) => (
-            <li key={index} className={styles.eventItem}>
-              <p>{event.id}</p>
-              <p>{event.uri}</p>
-              <p>{event.metadata.name }</p>
-              <p>{event.metadata.descripton }</p>
-              <p>{event.metadata.image }</p>
-              <p>{event.metadata.external_url }</p>
-              <p>{event.metadata.work_scope }</p>
-              <p>{event.metadata.work_timeframe }</p>
-              <p>{event.metadata.contributors }</p>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>No events found.</p>
-      )}
-    </div>
-  );
+return (
+  <div className={styles.listEventsContainer}>
+    {events.length > 0 ? (
+      <ul className={styles.eventsList}>
+        {events.map((event, index) => (
+          <li key={index} className={styles.eventItem}>
+            <img src={event.metadata.image} alt={event.metadata.name} className={styles.eventImage} />
+            <div className={styles.eventContent}>
+              <div className={styles.eventHeader}>
+                <h3>{event.metadata.name}</h3>
+                <span>{event.metadata.percentageOwnership}%</span>
+              </div>
+              <p>{event.metadata.description}</p>
+              <p className={styles.eventDate}>
+                {event.metadata.hypercert.work_timeframe.display_value}
+              </p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p>No events found.</p>
+    )}
+  </div>
+);
 };
 
 export default ListEvent;

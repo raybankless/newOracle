@@ -31,9 +31,7 @@ export async function fetchEvents(setEventsCallback) {
       ownedEvents.claims.map(async (event) => {
         // Skip fetching metadata for events with invalid or empty URIs
         if (!event.uri || event.uri.startsWith("{") || event.uri === "") {
-          console.log(
-            `Skipping event due to invalid or empty URI: ${event.uri}`,
-          );
+          //console.log(`Skipping event due to invalid or empty URI: ${event.uri}`,);
           return null;
         }
 
@@ -46,7 +44,7 @@ export async function fetchEvents(setEventsCallback) {
               metadata: metadata,
             };
           } else {
-            console.log(`Skipping event as it's not marked as a GoodOracle Event: ${metadata.description}`);
+          //  console.log(`Skipping event as it's not marked as a GoodOracle Event: ${metadata.description}`);
             return null;
           }
         } catch (error) {

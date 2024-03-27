@@ -21,8 +21,6 @@ const Home: NextPage = () => {
   const customTheme = lightTheme({
     colors: {
       accentButtonBg: "green",
-      //connectedButtonBg: "green",
-      //primaryButtonBg: "green",
     },
   });
 
