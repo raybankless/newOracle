@@ -1,8 +1,15 @@
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
-import { NextPage } from 'next';
-import { useAddress, useConnectionStatus, useDisconnect, useWallet, embeddedWallet, ConnectEmbed, ConnectWallet } from '@thirdweb-dev/react';
-import styles from '../styles/Home.module.css';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import { NextPage } from "next";
+import {
+  useAddress,
+  useConnectionStatus,
+  useWallet,
+  ConnectEmbed,
+  ConnectWallet,
+} from "@thirdweb-dev/react";
+import styles from "../styles/Home.module.css";
+import { lightTheme } from "thirdweb/react";
 
 const Home: NextPage = () => {
   const router = useRouter(); // Get the router object
@@ -10,7 +17,14 @@ const Home: NextPage = () => {
   const connectedWallet = useWallet("embeddedWallet");
   const [email, setEmail] = useState<string | undefined>();
   const connectionStatus = useConnectionStatus();
-  const disconnect = useDisconnect();
+
+  const customTheme = lightTheme({
+    colors: {
+      accentButtonBg: "green",
+      //connectedButtonBg: "green",
+      //primaryButtonBg: "green",
+    },
+  });
 
   useEffect(() => {
     if (connectedWallet) {
@@ -21,7 +35,7 @@ const Home: NextPage = () => {
   useEffect(() => {
     if (address && email) {
       router.push({
-        pathname: '/dashboard',
+        pathname: "/dashboard",
         query: { email, address }, // Passing the email and address in the query parameters
       });
     }
@@ -34,9 +48,7 @@ const Home: NextPage = () => {
           <div className={styles.column}>
             <h1 className={styles.title}>
               Welcome to{" "}
-              <span className={styles.gradientText0}>
-                  GoodOracle.
-              </span>
+              <span className={styles.gradientText0}>GoodOracle.</span>
             </h1>
             {address ? (
               <>
@@ -46,7 +58,7 @@ const Home: NextPage = () => {
               <>
                 {connectionStatus == "disconnected" ? (
                   <>
-                    <ConnectEmbed />
+                    <ConnectEmbed theme={customTheme} />
                   </>
                 ) : (
                   <div className={styles.spinner} />

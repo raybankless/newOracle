@@ -25,3 +25,10 @@
 .endEventButton:hover {
   background-color: #cc0000;
 }
+
+.warningContainer {
+  background-color: #002e0e;
+  padding: 20px;
+  max-width: 600px;
+  margin: auto;
+}

@@ -1,10 +1,7 @@
 // pages/events/[eventId].js -shows single event, event settings, mint event
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { useAddress, embeddedWallet, ConnectWallet, useSigner } from "@thirdweb-dev/react";
-import { EmbeddedWallet } from "thirdweb/wallets";
-import { ThirdwebSDK } from "@thirdweb-dev/sdk";
-import { Optimism } from "@thirdweb-dev/chains";
+import { useAddress, ConnectWallet, useSigner } from "@thirdweb-dev/react";
 import HomeButton from "../../components/HomeButton";
 import LoginModal from "../../components/LoginModal";
 import ContributionModal from "../../components/AddContributionModal";
@@ -23,7 +20,6 @@ export default function EventDetail() {
   const connectedWallet = useSigner();
   const [showWarning, setShowWarning] = useState(false);
   const [warningMessage, setWarningMessage] = useState("");
-  const sdk = new ThirdwebSDK(Optimism);
 
   useEffect(() => {
     if (!eventId) return;
@@ -67,24 +63,17 @@ export default function EventDetail() {
     currentWallet && event?.creatorWallet === currentWallet;
 
   const requestContributionSignature = async () => {
-    // if (!window.ethereum)
-    // return alert("MetaMask is required to sign messages.");
 
     try {
-      /*  const message = `Adding contribution to ${event?.name}.`;
-      const signer = new ethers.providers.Web3Provider(
-        window.ethereum,
-      ).getSigner();
-      const signature = await signer.signMessage(message);
-*/
       const signature = await connectedWallet.signMessage(
-          `Adding contribution to ${event?.name}.`,
-        );
+        `Adding contribution to ${event?.name}.`,
+      );
       if (signature) {
         console.log("Contribution signature:", signature);
-        // Proceed to verify the signature and update the allowlist
-        // Display the signature in a warning message
-        setWarningMessage(`Signature: ${signature}`);
+        const shortenedSignature = signature.slice(0, 8) + "...";
+        setWarningMessage(
+          `Adding Contribution to ${event?.name} - Signature: ${shortenedSignature}`,
+        );
         setShowWarning(true);
 
         await updateAllowlist(currentWallet);
@@ -102,6 +91,13 @@ export default function EventDetail() {
       <QRCode value={qrValue} size={256} />
       {/* You can add more inputs under the QR code here */}
     </ContributionModal>
+  );
+
+  const WarningModal = () => (
+    <div className={styles.warningContainer}>
+      <p style={{ color: "yellow" }}>{warningMessage}</p>
+      <button onClick={() => setShowWarning(false)}>Close</button>
+    </div>
   );
 
   // Function to update allowlist
@@ -165,6 +161,7 @@ export default function EventDetail() {
         <LoginModal onClose={() => setShowLoginModal(false)} />
       )}
       {showQRModal && <QRModal />}
+      {showWarning && <WarningModal />}
     </div>
   );
 }
