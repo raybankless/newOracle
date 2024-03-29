@@ -2,7 +2,7 @@
 
 import styles from '../styles/EventsGrid.module.css'; // Make sure to create this CSS file
 
-const EventsGrid = ({ events, onEventSelect }) => {
+const EventsGrid = ({ events }) => {
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
     return new Date(dateString).toLocaleDateString(undefined, options).replace(/\//g, '.');

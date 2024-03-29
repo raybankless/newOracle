@@ -21,7 +21,7 @@ const Dashboard = () => {
   const mockTasks = getMockTasks();
   const [showDropdown, setShowDropdown] = useState(false);
   const [showCreateEventModal, setShowCreateEventModal] = useState(false);
-  const [selectedEventId, setSelectedEventId] = useState(null);
+  //const [selectedEventId, setSelectedEventId] = useState(null);
 
 
   
