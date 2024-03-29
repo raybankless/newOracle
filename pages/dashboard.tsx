@@ -5,14 +5,13 @@ import Sidebar from "../components/Sidebar";
 import EventsGrid from "../components/EventsGrid";
 import { getMockCommunities, getMockTasks } from "../utils/mockData";
 import styles from "../styles/Dashboard.module.css"; // Make sure to update/create this CSS file
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
-import Link from 'next/link';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
+import Link from "next/link";
 import CreateEventModal from "../components/CreateEventModal";
 import EventDetail from "../components/EventDetail";
-import RightSidebar from "../components/RightSidebar"; 
+import RightSidebar from "../components/RightSidebar";
 import Event from "../models/Event";
-
 
 const Dashboard = () => {
   const currentWallet = useAddress();
@@ -21,10 +20,8 @@ const Dashboard = () => {
   const mockTasks = getMockTasks();
   const [showDropdown, setShowDropdown] = useState(false);
   const [showCreateEventModal, setShowCreateEventModal] = useState(false);
-  //const [selectedEventId, setSelectedEventId] = useState(null);
+  const [selectedEventId, setSelectedEventId] = useState(null);
 
-
-  
   useEffect(() => {
     const fetchEvents = async () => {
       if (currentWallet) {
@@ -33,8 +30,11 @@ const Dashboard = () => {
           const { data } = await res.json();
           if (data && Array.isArray(data)) {
             // Sort the events based on the createdAt field in descending order
-            const sortedEvents = data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
+            const sortedEvents = data.sort(
+              (a, b) =>
+                new Date(b.createdAt).getTime() -
+                new Date(a.createdAt).getTime(),
+            );
 
             setEvents(sortedEvents);
           }
@@ -46,40 +46,31 @@ const Dashboard = () => {
     fetchEvents();
   }, [currentWallet]);
 
-  return (
-      <div className={styles.dashboard}>
-        <Sidebar />
-        <main className={styles.mainContent}>
-          <div className={styles.headerWithButton}>
-            <h1>Locals</h1>
-            <div
-              className={styles.createButton}
-              onMouseEnter={() => setShowDropdown(true)}
-              onMouseLeave={() => setShowDropdown(false)}
-            >
-              <FontAwesomeIcon icon={faPlus} /> Create
-              {showDropdown && (
-                <div className={styles.dropdownContent}>
-                  <a onClick={() => setShowCreateEventModal(true)}>Event</a>
-                  <Link href="/create-task">Task</Link>
-                  <Link href="/create-community">Community</Link>
-                </div>
-              )}
-            </div>
-          </div>
-          <h2>Events</h2>
-          <EventsGrid events={events} />
-          {/* Rest of your component */}
-          <h2>Tasks</h2>
-          {/* Render your communities here using mock data */}
-          <h2>Communities</h2>
-          {/* Render your tasks here using mock data */}
-          
-        </main>
-        {showCreateEventModal && <CreateEventModal setShowModal={setShowCreateEventModal} />}
-        <RightSidebar />
-      </div>
-    );
+  const handleEventSelect = (eventId) => {
+    setSelectedEventId(eventId);
   };
+
+  const handleBack = () => {
+    setSelectedEventId(null); // Go back to grid view
+  };
+
+  return (
+    <div className={styles.dashboard}>
+      <Sidebar />
+      <main className={styles.mainContent}>
+        {selectedEventId ? (
+          <EventDetail eventId={selectedEventId} onBack={handleBack} />
+        ) : (
+          <>
+            <EventsGrid events={events} onEventSelect={handleEventSelect} />
+            <h2>Tasks</h2>
+            <h2>Communities</h2>
+          </>
+        )}
+      </main>
+      <RightSidebar />
+    </div>
+  );
+};
 
 export default Dashboard;
