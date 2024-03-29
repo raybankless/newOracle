@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styles from '../styles/CreateEventModal.module.css';
+import { useAddress } from "@thirdweb-dev/react";
 // /components/CreateEventModal.js - Modal component with form for event creation
 const CreateEventModal = ({setShowModal}) => {
   const [eventName, setEventName] = useState("");
@@ -10,6 +11,7 @@ const CreateEventModal = ({setShowModal}) => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [eventLocation, setEventLocation] = useState("");
+  const currentWallet = useAddress();
   
 
   const locations = ["Lisbon", "New York", "Istanbul", "Sydney"];
@@ -47,9 +49,9 @@ const CreateEventModal = ({setShowModal}) => {
         setEndDate("");
         setEventLocation("");
         setHeaderImage("");
+        setAdditionalInfoLink ("");
         console.log("Event created:", result.event);
         setShowModal(false); // Close the modal
-        setAdditionalInfoLink ("");
       } else {
         // Handle error - give user feedback
         console.error("Failed to create event:", result.error);

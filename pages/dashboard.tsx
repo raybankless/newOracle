@@ -13,6 +13,7 @@ import EventDetail from "../components/EventDetail";
 import RightSidebar from "../components/RightSidebar"; 
 import Event from "../models/Event";
 
+
 const Dashboard = () => {
   const currentWallet = useAddress();
   const [events, setEvents] = useState<Event[]>([]);

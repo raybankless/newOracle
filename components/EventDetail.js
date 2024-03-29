@@ -1,27 +1,32 @@
-const EventDetail = ({ eventId }) => {
+// components/EventDetail.js
+import React, { useEffect, useState } from 'react';
+import styles from '../styles/EventDetail.module.css';
+
+const EventDetail = ({ eventId, onBack }) => {
   const [event, setEvent] = useState(null);
 
   useEffect(() => {
-    fetch(`/api/events/${eventId}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          console.log("Event details fetched successfully:", data.event);
-          setEvent(data.event);
-        } else {
-          // Redirect or handle the error if the event is not found
-          console.log ("event detail fetch error")
-        }
-      })
-      .catch((error) => {
-        console.error("Could not fetch the event:", error);
-        
-      });
+    const fetchEventDetails = async () => {
+      try {
+        const response = await fetch(`/api/events/${eventId}`);
+        const { event } = await response.json();
+        setEvent(event);
+      } catch (error) {
+        console.error("Failed to fetch event details:", error);
+      }
+    };
+
+    fetchEventDetails();
   }, [eventId]);
 
+  if (!event) return <div>Loading...</div>;
+
   return (
-    <div>
-      {/* Display event details */}
+    <div className={styles.eventDetail}>
+      <button onClick={onBack}>Back to Events</button>
+      <img src={event.headerImage || "defaultImage.jpg"} alt={event.name} />
+      <h2>{event.name}</h2>
+      {/* Additional event details here */}
     </div>
   );
 };
