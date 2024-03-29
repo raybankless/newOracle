@@ -11,10 +11,11 @@ import Link from 'next/link';
 import CreateEventModal from "../components/CreateEventModal";
 import EventDetail from "../components/EventDetail";
 import RightSidebar from "../components/RightSidebar"; 
+import Event from "../models/Event";
 
 const Dashboard = () => {
   const currentWallet = useAddress();
-  const [events, setEvents] = useState([]);
+  const [events, setEvents] = useState<Event[]>([]);
   const mockCommunities = getMockCommunities();
   const mockTasks = getMockTasks();
   const [showDropdown, setShowDropdown] = useState(false);
