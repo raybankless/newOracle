@@ -15,7 +15,7 @@ import Event from "../models/Event";
 
 const Dashboard = () => {
   const currentWallet = useAddress();
-  const [events, setEvents] = useState<Event[]>([]);
+  const [events, setEvents] = useState([]);
   const mockCommunities = getMockCommunities();
   const mockTasks = getMockTasks();
   const [showDropdown, setShowDropdown] = useState(false);
