@@ -20,7 +20,7 @@ const Dashboard = () => {
   const mockTasks = getMockTasks();
   const [showDropdown, setShowDropdown] = useState(false);
   const [showCreateEventModal, setShowCreateEventModal] = useState(false);
-  const [selectedEventId, setSelectedEventId] = useState(null);
+  const [selectedEventId, setSelectedEventId] = useState("");
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -46,7 +46,7 @@ const Dashboard = () => {
     fetchEvents();
   }, [currentWallet]);
 
-  const handleEventSelect = (eventId) => {
+  const handleEventSelect = (eventId: string) => {
     setSelectedEventId(eventId);
   };
 
