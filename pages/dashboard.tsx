@@ -51,7 +51,7 @@ const Dashboard = () => {
   };
 
   const handleBack = () => {
-    setSelectedEventId(null); // Go back to grid view
+    setSelectedEventId(""); // Go back to grid view
   };
 
   return (
