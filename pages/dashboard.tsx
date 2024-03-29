@@ -15,7 +15,7 @@ import Event from "../models/Event";
 
 const Dashboard = () => {
   const currentWallet = useAddress();
-  const [events, setEvents] = useState([]);
+  const [events, setEvents] = useState<Event[]>([]);
   const mockCommunities = getMockCommunities();
   const mockTasks = getMockTasks();
   const [showDropdown, setShowDropdown] = useState(false);
@@ -58,10 +58,28 @@ const Dashboard = () => {
     <div className={styles.dashboard}>
       <Sidebar />
       <main className={styles.mainContent}>
+        <div className={styles.headerWithButton}>
+          <h1>Locals</h1>
+          <div
+            className={styles.createButton}
+            onMouseEnter={() => setShowDropdown(true)}
+            onMouseLeave={() => setShowDropdown(false)}
+          >
+            <FontAwesomeIcon icon={faPlus} /> Create
+            {showDropdown && (
+              <div className={styles.dropdownContent}>
+                <a onClick={() => setShowCreateEventModal(true)}>Event</a>
+                <Link href="/create-task">Task</Link>
+                <Link href="/create-community">Community</Link>
+              </div>
+            )}
+          </div>
+        </div>
         {selectedEventId ? (
           <EventDetail eventId={selectedEventId} onBack={handleBack} />
         ) : (
           <>
+             <h2>Events</h2>
             <EventsGrid events={events} onEventSelect={handleEventSelect} />
             <h2>Tasks</h2>
             <h2>Communities</h2>
@@ -74,3 +92,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
