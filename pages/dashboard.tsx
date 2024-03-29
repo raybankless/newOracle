@@ -20,6 +20,8 @@ const Dashboard = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showCreateEventModal, setShowCreateEventModal] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState(null);
+
+
   
   useEffect(() => {
     const fetchEvents = async () => {
@@ -27,22 +29,24 @@ const Dashboard = () => {
         try {
           const res = await fetch(`/api/${currentWallet}`);
           const { data } = await res.json();
-          const sortedEvents = data.sort(
-            (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
-          );
-          setEvents(sortedEvents);
+          if (data && Array.isArray(data)) {
+            // Sort the events based on the createdAt field in descending order
+            const sortedEvents = data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+
+            setEvents(sortedEvents);
+          }
         } catch (error) {
           console.error("Failed to fetch events:", error);
         }
       }
     };
-
     fetchEvents();
   }, [currentWallet]);
 
   return (
       <div className={styles.dashboard}>
-        <Sidebar onEventSelect={setSelectedEventId} />
+        <Sidebar />
         <main className={styles.mainContent}>
           <div className={styles.headerWithButton}>
             <h1>Locals</h1>
