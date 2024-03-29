@@ -3,7 +3,7 @@ import Link from 'next/link';
 import styles from '../styles/Sidebar.module.css';
 import { ConnectWallet } from "@thirdweb-dev/react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHome, faTasks, faUsers, faUser, faCalendarDays } from '@fortawesome/free-solid-svg-icons';
+import { faTasks, faUsers, faUser, faCalendarDays } from '@fortawesome/free-solid-svg-icons';
 import { useRouter } from 'next/router';
 
 const Sidebar = () => {

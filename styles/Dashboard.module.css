@@ -217,3 +217,48 @@
   padding: 20px;
   overflow-y: auto;
 }
+
+.headerWithButton {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.createButton {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #4CAF50; /* Example background color */
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.createButton:hover .dropdownContent {
+  display: block;
+}
+
+.dropdownContent {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  padding: 12px 16px;
+  z-index: 1;
+  top: 100%;
+  left: 0;
+}
+
+.dropdownContent a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+.dropdownContent a:hover {
+  background-color: #f1f1f1;
+}

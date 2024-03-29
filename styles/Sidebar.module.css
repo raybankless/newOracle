@@ -7,7 +7,7 @@
   gap: 30px;
   padding: 20px;
   background-color: #ffffff;
-  border-right: 2px solid #e0e0e0; /* Separator line */
+  border-right: 1px solid #e0e0e0; /* Separator line */
 }
 
 .logo .gradientText {
