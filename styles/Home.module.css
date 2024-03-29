@@ -1,127 +1,92 @@
+/* Home.module.css */
 .container {
-  width: 100%;
-  max-width: 1440px;
-  padding: 0 1rem;
-  margin: 0 auto;
-}
-
-/* Gradient Texts - Switch to green gradients */
-.gradientText0 {
-  background: -webkit-linear-gradient(#76b947, #4a7b31, #2e5820);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.gradientText1 {
-  background: -webkit-linear-gradient(#a2d39e, #6bbf69);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.gradientText2 {
-  background: -webkit-linear-gradient(#76b947, #527a35);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.gradientText3 {
-  background: -webkit-linear-gradient(#88c65e, #b4de95);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.title a:hover,
-.title a:focus,
-.title a:active {
-  text-decoration: underline;
-  text-decoration-color: #4a7b31; /* Green tone */
-}
-
-/* Update to ensure readability and contrast on potentially lighter backgrounds */
-.title, .description {
-  text-align: left;
-  color: #131f0f; /* Darker green for text */
-}
-
-.connect, .description {
-  margin: 2rem 0; /* Simplified for consistency */
-}
-
-.code {
-  background: #0f1c0d; /* Lighter green for code background */
-  border-radius: 5px;
-  padding: 0.5em;
-  font-size: 1.1rem;
-  color: #3a5335; /* Dark green for code text */
-}
-
-/* Layout elements */
-.column, .row, .grid {
   display: flex;
-  justify-content: center;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  height: 100vh;
+}
+.midContainer {
+  display: flex;
+  align-items: center;
+  justify-content: left;
+  max-height: '50%';
+  max-width: '70%';
+
+
 }
 
-/* For demonstration, keeping the flex-directions */
-.column {
+.leftPanel {
+  display: flex;
   flex-direction: column;
+  align-items: left;
+  justify-content: left;
+  margin-right: 10vh;
+
+
 }
 
-.row {
-  flex-direction: row;
+.rightPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: right;
+  justify-content: right;
+  width : '70%'
+
 }
 
-/* Interactive elements */
-.button, .input {
-  min-width: 260px;
-  max-width: 360px;
-  border-radius: 0.5rem;
-  padding: 0.5rem;
-  gap: 0.5rem;
-  background-color: #a2d39e; /* Light green for buttons */
-  color: #2e5820; /* Text color */
+.separator {
+  width: 1px;
+  height: 70%; /* Adjust height as needed */
+  background-color: #ddd; /* Adjust color as needed */
 }
 
-.grid {
-  gap: 20px;
+.gradientText0 {
+  background: linear-gradient(45deg, #1f3012, #4ba720);
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  -webkit-background-clip: text;
+  text-fill-color: transparent;
+  font-size: 3em;
+  
 }
 
-.card {
-  background-color: #f0f6f0; /* Very light green/white-ish for cards */
-  color: #3a5335; /* Text color */
-  border: 1px solid #d7e8d4; /* Border color */
+.subtitle {
+  font-size: 1.5em;
+  color: #333;
 }
 
-.card:hover,
-.card:focus,
-.card:active {
-  background-color: #e1ede1; /* Slightly darker green on hover/focus/active */
-  opacity: 1; /* Removing opacity change for clarity */
+.placeholderImage {
+  width: 500px; /* Adjust width as needed */
+  height: 300px; /* Adjust height as needed */
+  background: #ededed; /* Placeholder color */
+  border-radius: 10px;
+  margin-top: 20px;
+  
 }
 
-/* Media query adjustments */
+.rightPanel {
+  width: 80%; /* Adjust width as needed */
+  max-width: 400px; /* Adjust maximum width as needed */
+}
+
+/* Responsive adjustments */
 @media (max-width: 768px) {
-  .grid, .title {
-    width: 100%;
-    font-size: 3rem;
+  .container {
+    flex-direction: column;
   }
-}
 
-.logo img {
-  filter: invert(0.9); /* Adjusted for better visibility on lighter backgrounds */
-}
+  .separator {
+    display: none;
+  }
 
-.spinner {
-  border: 5px solid #e8f5e9; /* Lighter green for spinner */
-  border-top: 5px solid #76b947; /* Darker green for spinner top */
-}
+  .leftPanel,
+  .rightPanel {
+    width: 100%;
+    max-width: none;
+  }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  .placeholderImage {
+    width: 200px; /* Adjust width as needed */
+    height: 200px; /* Adjust height as needed */
+  }
 }

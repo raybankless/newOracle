@@ -1,74 +1,45 @@
+// index.tsx
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { NextPage } from "next";
-import {
-  useAddress,
-  useConnectionStatus,
-  useWallet,
-  ConnectEmbed,
-  ConnectWallet,
-} from "@thirdweb-dev/react";
+import { useAddress, ConnectEmbed } from "@thirdweb-dev/react";
 import styles from "../styles/Home.module.css";
 import { lightTheme } from "thirdweb/react";
 
 const Home: NextPage = () => {
-  const router = useRouter(); // Get the router object
-  const address = useAddress(); // Get the connected wallet address
-  const connectedWallet = useWallet("embeddedWallet");
-  const [email, setEmail] = useState<string | undefined>();
-  const connectionStatus = useConnectionStatus();
+  const router = useRouter();
+  const address = useAddress();
 
   const customTheme = lightTheme({
     colors: {
       accentButtonBg: "green",
     },
   });
-
+  
   useEffect(() => {
-    if (connectedWallet) {
-      connectedWallet?.getEmail().then((email) => setEmail(email));
+    if (address) {
+      // Redirect to the dashboard if the user is already connected
+      router.push("/dashboard");
     }
-  }, [connectedWallet]);
-
-  useEffect(() => {
-    if (address && email) {
-      router.push({
-        pathname: "/dashboard",
-        query: { email, address }, // Passing the email and address in the query parameters
-      });
-    }
-  }, [address, email, router]);
+  }, [address, router]);
 
   return (
-    <main className={styles.main}>
-      <div className={styles.container}>
-        <div className={styles.header}>
-          <div className={styles.column}>
-            <h1 className={styles.title}>
-              Welcome to{" "}
-              <span className={styles.gradientText0}>GoodOracle.</span>
-            </h1>
-            {address ? (
-              <>
-                <ConnectWallet />
-              </>
-            ) : (
-              <>
-                {connectionStatus == "disconnected" ? (
-                  <>
-                    <ConnectEmbed theme={customTheme} />
-                  </>
-                ) : (
-                  <div className={styles.spinner} />
-                )}
-              </>
-            )}
-          </div>
-        </div>
-        <div className={styles.grid}></div>
+    <div className={styles.container}>
+      <div className={styles.midContainer}>
+      <div className={styles.leftPanel}>
+        <h1 className={styles.gradientText0}>GoodOracle</h1>
+        <span className={styles.subtitle}>Public Good NFTs & Retroactive Funding</span>
+        <img className={styles.placeholderImage} src="https://placehold.co/500x300"></img>
       </div>
-    </main>
+      <div className={styles.separator}></div>
+      <div className={styles.rightPanel}>
+        <ConnectEmbed theme={customTheme} />
+      </div>
+      </div>
+    </div>
   );
-};
+  };
 
-export default Home;
+  export default Home;
+
+

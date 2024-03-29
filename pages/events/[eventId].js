@@ -20,7 +20,8 @@ export default function EventDetail() {
   const connectedWallet = useSigner();
   const [showWarning, setShowWarning] = useState(false);
   const [warningMessage, setWarningMessage] = useState("");
-
+  const [contributors, setContributors] = useState([]);
+  
   useEffect(() => {
     if (!eventId) return;
     console.log("Fetching event details for eventId:", eventId);
@@ -30,6 +31,9 @@ export default function EventDetail() {
         if (data.success) {
           console.log("Event details fetched successfully:", data.event);
           setEvent(data.event);
+          setContributors(data.event.allowList);
+          console.log("Contributors:", contributors);
+          console.log( data.event.allowListed);
         } else {
           // Redirect or handle the error if the event is not found
           router.push("/events");
@@ -136,6 +140,18 @@ export default function EventDetail() {
       <p className={styles.textBlack}>{event.creatorWallet}</p>
       <p className={styles.textBlack}>{event.startDate}</p>
       {/* Conditional button rendering based on user connection and role */}
+      {contributors.length > 0 && (
+        <section className={styles.contributorsSection}>
+          <h2>Contributors</h2>
+          <ul className={styles.contributorsList}>
+            {contributors.map((contributor, index) => (
+              <li key={index} className={styles.contributor}>
+                {contributor} {/* Replace with how you'd like to display the address */}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       {showLoginButton && (
         <button
           className={styles.loginButton}

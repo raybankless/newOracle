@@ -1,0 +1,71 @@
+/* Sidebar.module.css */
+.sidebar {
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: 30px;
+  padding: 20px;
+  background-color: #ffffff;
+  border-right: 2px solid #e0e0e0; /* Separator line */
+}
+
+.logo .gradientText {
+  background: linear-gradient(45deg, #1f3012, #499825);
+  background-clip: text;
+  -webkit-background-clip: text;
+  text-fill-color: transparent;
+  -webkit-text-fill-color: transparent;
+  font-size: 2em;
+  font-weight: bold;
+  margin-left: 20px; /* Align with menu items */
+}
+
+.nav {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #333;
+  padding: 10px 20px;
+  transition: background-color 0.3s;
+  text-decoration: none;
+}
+
+.navItem:hover, .navItem.active {
+  color: #004d40;
+}
+
+/* Active state style */
+.active {
+  color: #004d40;
+}
+
+/* Include FontAwesome icon sizes if needed */
+.fa-icons {
+  font-size: 20px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 2px solid #e0e0e0; /* Separator line at bottom for mobile */
+  }
+
+  .logo .gradientText {
+    font-size: 1.2em;
+  }
+
+  .navItem {
+    font-size: 1em;
+  }
+}

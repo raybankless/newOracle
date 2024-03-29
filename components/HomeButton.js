@@ -5,9 +5,7 @@ import styles from '../styles/HomeButton.module.css'; // Assume you have this CS
 const HomeButton = () => {
   return (
     <div className={styles.homeButtonContainer}>
-      <Link href="/">
-        <a className={styles.homeButton}>Home</a>
-      </Link>
+      <Link className={styles.homeButton} href="/"> Home </Link>
     </div>
   );
 };
