@@ -19,7 +19,7 @@ const Sidebar = () => {
         <span className={styles.gradientText}>GoodOracle</span>
       </div>
       <nav className={styles.nav}>
-        <Link href="/events" className={`${styles.navItem} ${isActive('/events')}`}>
+        <Link href="/" className={`${styles.navItem} ${isActive('/events')}`}>
           <FontAwesomeIcon icon={faCalendarDays} /> Events
         </Link>
         <Link href="/" className={`${styles.navItem} ${isActive('/task-boards')}`}>

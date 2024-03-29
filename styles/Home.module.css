@@ -4,6 +4,7 @@
   align-items: center;
   justify-content: center;
   height: 100vh;
+  
 }
 .midContainer {
   display: flex;
@@ -11,7 +12,8 @@
   justify-content: left;
   max-height: '50%';
   max-width: '70%';
-
+  box-shadow: 0 26px 58px 0 rgba(0, 0, 0, .22), 0 5px 14px 0 rgba(0, 0, 0, .18);
+  padding : 50px;
 
 }
 

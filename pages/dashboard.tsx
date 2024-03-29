@@ -83,6 +83,9 @@ const Dashboard = () => {
             <EventsGrid events={events} onEventSelect={handleEventSelect} />
             <h2>Tasks</h2>
             <h2>Communities</h2>
+            {showCreateEventModal && (
+              <CreateEventModal setShowModal={setShowCreateEventModal} />
+            )}
           </>
         )}
       </main>

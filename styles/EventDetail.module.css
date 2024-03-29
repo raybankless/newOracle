@@ -32,3 +32,56 @@
   max-width: 600px;
   margin: auto;
 }
+
+/* EventDetail.module.css */
+.eventDetail {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  
+}
+
+.eventImageContainer {
+  flex: 1;
+}
+
+.eventImage {
+  width: 100%;
+  height: 200px;
+  border-radius: 10%;
+  margin-right: 20px;
+}
+
+.navItem {
+  display: flex;
+  align-items: right;
+  gap: 5px;
+  font-size: 0.9em;
+  color: #2f571a;
+  padding: 5px 5px;
+  transition: background-color 0.3s;
+  text-decoration: none;
+}
+
+.eventInfo {
+  flex: 2;
+  margin-left: 20px;
+}
+
+.eventActions {
+  display: flex;
+  gap: 5px;
+  margin-top: 10px;
+  text-alignalign: right;
+}
+
+
+.contributorsSection {
+  margin-top: 20px;
+}
