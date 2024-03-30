@@ -1,7 +1,7 @@
 // components/EventDetail.js
 import React, { useEffect, useState } from "react";
 import styles from "../styles/EventDetail.module.css";
-import Image from "next/image";
+
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPlus,
@@ -14,12 +14,11 @@ import {
 import Link from "next/link";
 import AddContributionModal from "./AddContributionModal";
 
-const EventDetail = ({ eventId, onBack }) => {
+const EventDetail = ({ eventId }) => {
   const [event, setEvent] = useState(null);
   const [showAddContributionModal, setShowAddContributionModal] =
     useState(false);
 
-  const [selectedEventId, setSelectedEventId] = useState("");
 
   const formatDate = (dateString) => {
     const options = { year: "numeric", month: "2-digit", day: "2-digit" };
@@ -43,16 +42,6 @@ const EventDetail = ({ eventId, onBack }) => {
     fetchEventDetails();
   }, [eventId]);
 
-  useEffect(() => {
-    const queryParams = new URLSearchParams(window.location.search);
-    const data = queryParams.get("data");
-    if (data) {
-      const { action, eventId } = JSON.parse(decodeURIComponent(data));
-      if (action === "contribute") {
-        setSelectedEventId(eventId);
-      }
-    }
-  }, []);
 
   if (!event) return <div>Loading...</div>;
 

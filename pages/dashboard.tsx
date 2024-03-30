@@ -1,6 +1,6 @@
 // pages/dashboard.tsx
 import { useEffect, useState } from "react";
-import { useAddress } from "@thirdweb-dev/react";
+import { useAddress, useSigner } from "@thirdweb-dev/react";
 import Sidebar from "../components/Sidebar";
 import EventsGrid from "../components/EventsGrid";
 import { getMockCommunities, getMockTasks } from "../utils/mockData";
@@ -15,6 +15,7 @@ import { useRouter } from "next/router";
 
 const Dashboard = () => {
   const currentWallet = useAddress();
+  const signer = useSigner();
   const [events, setEvents] = useState<Event[]>([]);
   const mockCommunities = getMockCommunities();
   const mockTasks = getMockTasks();
@@ -48,9 +49,12 @@ const Dashboard = () => {
   }, [currentWallet]);
 
   useEffect(() => {
+    let queryData = router.query.data;
+    if (Array.isArray(queryData)) {
+      queryData = queryData[0];
+    }
+    console.log("queryData1 : ", queryData)
     
-    const queryData = router.query.data;
-
     if (queryData) {
       try {
         const decodedData = decodeURIComponent(queryData);
@@ -59,7 +63,6 @@ const Dashboard = () => {
         if (qrData.action === "contribute" && qrData.eventId) {
           console.log("Event ID from QR:", qrData.eventId);
           setSelectedEventId(qrData.eventId);
-          // Optionally, navigate to the event detail or trigger the modal here
         }
       } catch (error) {
         console.error("Error parsing QR data:", error);
@@ -67,13 +70,8 @@ const Dashboard = () => {
     }
   }, [router.query]);
 
-
   const handleEventSelect = (eventId: string) => {
     setSelectedEventId(eventId);
-  };
-
-  const handleBack = () => {
-    setSelectedEventId(""); // Go back to grid view
   };
 
   return (
@@ -81,7 +79,7 @@ const Dashboard = () => {
       <Sidebar />
       <main className={styles.mainContent}>
         {selectedEventId ? (
-          <EventDetail eventId={selectedEventId} onBack={handleBack} />
+          <EventDetail eventId={selectedEventId} />
         ) : (
           <>
             <div className={styles.headerWithButton}>

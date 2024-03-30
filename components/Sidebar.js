@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import styles from "../styles/Sidebar.module.css";
-import { ConnectWallet } from "@thirdweb-dev/react";
+import { ConnectWallet, useAddress } from "@thirdweb-dev/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faTasks,
@@ -13,7 +13,9 @@ import { useRouter } from "next/router";
 
 const Sidebar = () => {
   const router = useRouter();
-
+  const address = useAddress();
+  const connected = !!address;
+  
   const isActive = (path) => {
     return router.pathname === path ? styles.active : "";
   };
@@ -45,7 +47,9 @@ const Sidebar = () => {
           <FontAwesomeIcon icon={faUser} /> Profile
         </Link>
       </nav>
+      {connected && (
       <ConnectWallet />
+      )}
     </aside>
   );
 };
