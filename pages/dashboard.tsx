@@ -11,7 +11,7 @@ import Link from "next/link";
 import CreateEventModal from "../components/CreateEventModal";
 import EventDetail from "../components/EventDetail";
 import RightSidebar from "../components/RightSidebar";
-import Event from "../models/Event";
+import AddContributionModal from "../components/AddContributionModal";
 
 const Dashboard = () => {
   const currentWallet = useAddress();
@@ -21,6 +21,7 @@ const Dashboard = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showCreateEventModal, setShowCreateEventModal] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState("");
+ 
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -45,6 +46,8 @@ const Dashboard = () => {
     };
     fetchEvents();
   }, [currentWallet]);
+
+
 
   const handleEventSelect = (eventId: string) => {
     setSelectedEventId(eventId);
@@ -85,6 +88,12 @@ const Dashboard = () => {
             <h2>Communities</h2>
             {showCreateEventModal && (
               <CreateEventModal setShowModal={setShowCreateEventModal} />
+            )}
+            {selectedEventId && showAddContributionModal && (
+              <AddContributionModal
+                eventId={selectedEventId}
+                onClose={() => setShowAddContributionModal(false)}
+              />
             )}
           </>
         )}

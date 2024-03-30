@@ -1,18 +1,71 @@
 // components/AddContributionModal.js
-import React from "react";
-import styles from "../styles/AddContributionModal.module.css"; // Create appropriate styles
+import React, { useEffect, useState } from "react";
+import QRCode from "qrcode.react";
+import styles from "../styles/AddContributionModal.module.css";
 
-const ContributionModal = ({ show, children, onClose }) => {
-  if (!show) return null;
+const AddContributionModal = ({ eventId, onClose, contributors }) => {
+  const [measurement, setMeasurement] = useState("");
+  const [unit, setUnit] = useState("");
+  const [qrValue, setQrValue] = useState("");
+
+  useEffect(() => {
+    const qrData = {
+      action: "contribute",
+      eventId: eventId,
+      timestamp: new Date().getTime(),
+    };
+    const encodedQRData = encodeURIComponent(JSON.stringify(qrData));
+    setQrValue(`${window.location.origin}/dashboard?data=${encodedQRData}`);
+  }, [eventId]);
+
+  const handleContributionSubmit = (e) => {
+    e.preventDefault();
+    console.log("Contribution details:", measurement, unit);
+    // Here, implement your logic to handle the contribution details submission.
+    onClose(); // Assuming onClose will close the modal.
+  };
 
   return (
-    <div className={styles.modalBackdrop} onClick={onClose}>
-      <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
-        {children}
-        <button onClick={onClose} className={styles.closeButton}>Close</button>
+    <div className={styles.modalBackdrop}>
+      <div className={styles.modalContent}>
+        <div className={styles.modalHeader}>
+          <button className={styles.closeButton} onClick={onClose}>
+            &times;
+          </button>
+        </div>
+        <div className={styles.qrCodeContainer}>
+          <QRCode value={qrValue} size={256} />
+        </div>
+        <form onSubmit={handleContributionSubmit} className={styles.contributionForm}>
+          <div className={styles.inputsContainer}>
+            <div className={styles.formGroup}>
+              <label>Measurement:</label>
+              <input
+                type="number"
+                value={measurement}
+                onChange={(e) => setMeasurement(e.target.value)}
+                required
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label>Unit:</label>
+              <input
+                type="text"
+                value={unit}
+                onChange={(e) => setUnit(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+          <div className={styles.contributorsList}>
+            {/* Minified version of contributors list */}
+            
+          </div>
+          <button type="submit" className={styles.submitButton}>Add Contribution</button>
+        </form>
       </div>
     </div>
   );
 };
 
-export default ContributionModal;
+export default AddContributionModal;

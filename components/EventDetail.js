@@ -5,10 +5,13 @@ import Image from 'next/image';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faEdit, faCoins, faNetworkWired, faMagnifyingGlass, faCalendar } from "@fortawesome/free-solid-svg-icons";
 import Link from 'next/link';
+import AddContributionModal from './AddContributionModal';
+
   
   const EventDetail = ({ eventId, onBack }) => {
     const [event, setEvent] = useState(null);
-
+     const [showAddContributionModal, setShowAddContributionModal] = useState(false);
+    
     const formatDate = (dateString) => {
       const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
       return new Date(dateString).toLocaleDateString(undefined, options).replace(/\//g, '.');
@@ -28,6 +31,18 @@ import Link from 'next/link';
   
       fetchEventDetails();
     }, [eventId]);
+
+    useEffect(() => {
+      const queryParams = new URLSearchParams(window.location.search);
+      const data = queryParams.get("data");
+      if (data) {
+        const { action, eventId } = JSON.parse(decodeURIComponent(data));
+        if (action === "contribute") {
+          setSelectedEventId(eventId);
+            setShowAddContributionModal(true); // Assume you have this state to show the contribution sign message modal
+        }
+      }
+    }, []);
     
     if (!event) return <div>Loading...</div>;
   
@@ -45,20 +60,32 @@ return (
       </div>
       
       <div className={styles.eventInfo}>
-        <h1>{event.name}</h1>
+        <h2>{event.name}</h2>
         <p><FontAwesomeIcon icon={faCalendar}  /> {formatDate(event.startDate)} - {formatDate(event.endDate)} </p>
         <p><FontAwesomeIcon icon={faMagnifyingGlass}  /> {event.scopeOfWork} </p>
         <p>{event.description}</p>
       </div>
     </div>
       <div className={styles.eventActions}>
-        <Link href="/" className={styles.navItem}><FontAwesomeIcon icon={faPlus}  /> Add contribution</Link>
+        <span
+          className={`${styles.navItem}`}
+          onClick={() => setShowAddContributionModal(true)}
+        >
+          <FontAwesomeIcon icon={faPlus} /> Add Contribution
+        </span>
+
+        {showAddContributionModal && (
+          <AddContributionModal
+            eventId={eventId}
+            onClose={() => setShowAddContributionModal(false)}
+          />
+        )}
         <Link href="/" className={styles.navItem}><FontAwesomeIcon icon={faNetworkWired}  /> Add IoT Device</Link>
         <Link href="/" className={styles.navItem}><FontAwesomeIcon icon={faEdit} /> Edit Event</Link>
         <Link href="/" className={styles.navItem}><FontAwesomeIcon icon={faCoins} /> Mint Event</Link>
       </div>
     <div className={styles.contributorsSection}>
-      <h2>Contributors</h2>
+      <span className={styles.contributorsSectionHeader}>Contributors</span>
       {/* List of contributors */}
     </div>
   </div>

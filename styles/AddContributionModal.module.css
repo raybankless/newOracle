@@ -18,8 +18,14 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   width: 90%;
   max-width: 500px;
+  position: relative;
 }
 
+.modalHeader {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
 .closeButton {
   background-color: #d9534f;
   color: white;
@@ -33,4 +39,42 @@
 
 .closeButton:hover {
   background-color: #c9302c;
+}
+
+.formGroup {
+  margin-bottom: 20px;
+}
+
+.inputsContainer {
+  margin-bottom: 20px;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.formGroup input,
+.formGroup textarea,
+.formGroup select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.submitButton {
+  background-color: #4caf50; /* Your green theme color */
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.qrCodeContainer {
+  display: flex;
+  justify-content: center;
+  padding: 20px 0;
 }
