@@ -3,11 +3,16 @@
   import styles from '../styles/EventDetail.module.css';
 import Image from 'next/image';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus, faEdit, faCoins, faNetworkWired, faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
+import { faPlus, faEdit, faCoins, faNetworkWired, faMagnifyingGlass, faCalendar } from "@fortawesome/free-solid-svg-icons";
 import Link from 'next/link';
   
   const EventDetail = ({ eventId, onBack }) => {
     const [event, setEvent] = useState(null);
+
+    const formatDate = (dateString) => {
+      const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+      return new Date(dateString).toLocaleDateString(undefined, options).replace(/\//g, '.');
+    };
   
     useEffect(() => {
       const fetchEventDetails = async () => {
@@ -41,6 +46,7 @@ return (
       
       <div className={styles.eventInfo}>
         <h1>{event.name}</h1>
+        <p><FontAwesomeIcon icon={faCalendar}  /> {formatDate(event.startDate)} - {formatDate(event.endDate)} </p>
         <p><FontAwesomeIcon icon={faMagnifyingGlass}  /> {event.scopeOfWork} </p>
         <p>{event.description}</p>
       </div>
