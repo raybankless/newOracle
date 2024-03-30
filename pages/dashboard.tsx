@@ -11,6 +11,7 @@ import Link from "next/link";
 import CreateEventModal from "../components/CreateEventModal";
 import EventDetail from "../components/EventDetail";
 import RightSidebar from "../components/RightSidebar";
+import { useRouter } from "next/router";
 
 const Dashboard = () => {
   const currentWallet = useAddress();
@@ -20,7 +21,7 @@ const Dashboard = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showCreateEventModal, setShowCreateEventModal] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState("");
- 
+  const router = useRouter();
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -45,6 +46,26 @@ const Dashboard = () => {
     };
     fetchEvents();
   }, [currentWallet]);
+
+  useEffect(() => {
+    
+    const queryData = router.query.data;
+
+    if (queryData) {
+      try {
+        const decodedData = decodeURIComponent(queryData);
+        const qrData = JSON.parse(decodedData);
+
+        if (qrData.action === "contribute" && qrData.eventId) {
+          console.log("Event ID from QR:", qrData.eventId);
+          setSelectedEventId(qrData.eventId);
+          // Optionally, navigate to the event detail or trigger the modal here
+        }
+      } catch (error) {
+        console.error("Error parsing QR data:", error);
+      }
+    }
+  }, [router.query]);
 
 
   const handleEventSelect = (eventId: string) => {

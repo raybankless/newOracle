@@ -19,6 +19,8 @@ const EventDetail = ({ eventId, onBack }) => {
   const [showAddContributionModal, setShowAddContributionModal] =
     useState(false);
 
+  const [selectedEventId, setSelectedEventId] = useState("");
+
   const formatDate = (dateString) => {
     const options = { year: "numeric", month: "2-digit", day: "2-digit" };
     return new Date(dateString)
@@ -48,7 +50,6 @@ const EventDetail = ({ eventId, onBack }) => {
       const { action, eventId } = JSON.parse(decodeURIComponent(data));
       if (action === "contribute") {
         setSelectedEventId(eventId);
-        setShowAddContributionModal(true); // Assume you have this state to show the contribution sign message modal
       }
     }
   }, []);

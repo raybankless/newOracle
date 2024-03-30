@@ -15,9 +15,13 @@ const AddContributionModal = ({ eventId, onClose, contributors }) => {
       timestamp: new Date().getTime(),
     };
     const encodedQRData = encodeURIComponent(JSON.stringify(qrData));
-    setQrValue(`${window.location.origin}/dashboard?data=${encodedQRData}`);
+    console.log("encodedQRData : ", encodedQRData);
+      setQrValue(`${window.location.origin}/dashboard?data=${encodedQRData}`);
+    
   }, [eventId]);
-
+  
+  console.log("qrValue : ", qrValue);
+  
   const handleContributionSubmit = (e) => {
     e.preventDefault();
     console.log("Contribution details:", measurement, unit);
