@@ -11,7 +11,6 @@ import Link from "next/link";
 import CreateEventModal from "../components/CreateEventModal";
 import EventDetail from "../components/EventDetail";
 import RightSidebar from "../components/RightSidebar";
-import AddContributionModal from "../components/AddContributionModal";
 
 const Dashboard = () => {
   const currentWallet = useAddress();
@@ -46,7 +45,6 @@ const Dashboard = () => {
     };
     fetchEvents();
   }, [currentWallet]);
-
 
 
   const handleEventSelect = (eventId: string) => {
@@ -88,12 +86,6 @@ const Dashboard = () => {
             <h2>Communities</h2>
             {showCreateEventModal && (
               <CreateEventModal setShowModal={setShowCreateEventModal} />
-            )}
-            {selectedEventId && showAddContributionModal && (
-              <AddContributionModal
-                eventId={selectedEventId}
-                onClose={() => setShowAddContributionModal(false)}
-              />
             )}
           </>
         )}
