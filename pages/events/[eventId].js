@@ -62,9 +62,7 @@ export default function EventDetail() {
     }
   }, [eventId, currentWallet, router, showQRModal]);
 
-  const showLoginButton = !currentWallet;
-  const showEndEventButton =
-    currentWallet && event?.creatorWallet === currentWallet;
+
 
   const requestContributionSignature = async () => {
 
@@ -128,6 +126,10 @@ export default function EventDetail() {
       console.error("Failed to update allowlist:", data.message);
     }
   };
+
+  const showLoginButton = !currentWallet;
+  const showEndEventButton =
+    currentWallet && event?.creatorWallet === currentWallet;
 
   if (!event) return <div className={styles.loading}>Loading...</div>;
 

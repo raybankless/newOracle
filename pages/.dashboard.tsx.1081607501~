@@ -12,18 +12,19 @@ import CreateEventModal from "../components/CreateEventModal";
 import EventDetail from "../components/EventDetail";
 import RightSidebar from "../components/RightSidebar";
 import { useRouter } from "next/router";
-import { QRDetection } from "../utils/QRDetection";
 
 const Dashboard = () => {
   const currentWallet = useAddress();
+  const connectedWallet = useSigner();
+  const signer = useSigner();
   const [events, setEvents] = useState<Event[]>([]);
   const mockCommunities = getMockCommunities();
   const mockTasks = getMockTasks();
   const [showDropdown, setShowDropdown] = useState(false);
   const [showCreateEventModal, setShowCreateEventModal] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState("");
+  const [event, setEvent] = useState(null);
   const router = useRouter();
-  const [qrSend, setQrSend] = useState(null);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -50,13 +51,13 @@ const Dashboard = () => {
   }, [currentWallet]);
 
   useEffect(() => {
-    const handleQRData = async () => {
-    let queryData = router.query.data;
-    // This ensures queryData is a string
+    
+    const QRDetected = async () =>
+      {let queryData = router.query.data;
     if (Array.isArray(queryData)) {
       queryData = queryData[0];
     }
-    
+
     if (queryData) {
       try {
         const decodedData = decodeURIComponent(queryData);
@@ -64,55 +65,79 @@ const Dashboard = () => {
 
         if (qrData.action === "contribute" && qrData.eventId) {
           console.log("Event ID from QR:", qrData.eventId);
+          await requestContributionSignature();
           setSelectedEventId(qrData.eventId);
-          setQrSend (qrData);
+          try {
+            const response = await fetch(`/api/events/${qrData.eventId}`);
+            const { event } = await response.json();
+            setEvent(event);
+            console.log(event);
+          } catch (error) {
+            console.error("Failed to fetch event details:", error);
+          }
         }
       } catch (error) {
         console.error("Error parsing QR data:", error);
       }
-    }
+    }}
     
-  }
+    QRDetected();
+  }, [router.query]);
 
-    if (router.isReady) {
-      handleQRData();
+  const requestContributionSignature = async () => {
+    try {
+      const signature = await connectedWallet.signMessage(
+        `Adding contribution to ${event?.name}.`,
+      );
+      if (signature) {
+        console.log("Contribution signature:", signature);
+        const shortenedSignature = signature.slice(0, 8) + "...";
+
+
+        await updateAllowlist(currentWallet);
+      } else {
+
+      }
+    } catch (error) {
+      console.error("Error signing message for contribution:", error);
     }
-  }, [router.isReady, router.query.data, currentWallet]);
+  };
+
+  // Function to update allowlist
+  const updateAllowlist = async (userAddress) => {
+    // Verify the signature in your backend before updating
+    // Assuming verification is done, call updateEvent API to update allowlist
+    const response = await fetch(`/api/events/updateEvent/${eventId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        update: {
+          $push: { allowListed: userAddress },
+        },
+      }),
+    });
+
+    const data = await response.json();
+    if (data.success) {
+      console.log("Allowlist updated successfully");
+      // Refresh the page or update the state as needed
+    } else {
+      console.error("Failed to update allowlist:", data.message);
+    }
+  };
 
   const handleEventSelect = (eventId: string) => {
     setSelectedEventId(eventId);
   };
-
-  /*useEffect(() => {
-    let queryData = router.query.data;
-    if (Array.isArray(queryData)) {
-      queryData = queryData[0];
-    }
-    console.log("queryData1 : ", queryData)
-    
-    if (queryData) {
-      try {
-        const decodedData = decodeURIComponent(queryData);
-        const qrData = JSON.parse(decodedData);
-
-        if (qrData.action === "contribute" && qrData.eventId) {
-          console.log("Event ID from QR:", qrData.eventId);
-          setSelectedEventId(qrData.eventId);
-        }
-      } catch (error) {
-        console.error("Error parsing QR data:", error);
-      }
-    }
-  }, [router.query]);
-
-*/
 
   return (
     <div className={styles.dashboard}>
       <Sidebar />
       <main className={styles.mainContent}>
         {selectedEventId ? (
-          <EventDetail eventId={selectedEventId} qrCode={qrSend } currentWallet={currentWallet} />
+          <EventDetail eventId={selectedEventId} />
         ) : (
           <>
             <div className={styles.headerWithButton}>
@@ -133,7 +158,7 @@ const Dashboard = () => {
               </div>
             </div>
             <h2>Events</h2>
-            <EventsGrid events={events}  onEventSelect={handleEventSelect} />
+            <EventsGrid events={events} onEventSelect={handleEventSelect} />
             <h2>Tasks</h2>
             <h2>Communities</h2>
             {showCreateEventModal && (
