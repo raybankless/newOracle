@@ -1,7 +1,7 @@
 // components/EventDetail.js
 import React, { useEffect, useState, useMemo } from "react";
 import styles from "../styles/EventDetail.module.css";
-
+import LoginModal from "../components/LoginModal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPlus,
@@ -22,7 +22,7 @@ const EventDetail = ({ eventId, qrCode, currentWallet }) => {
   const [consoleLog, setConsoleLog] = useState("");
   const signer = useSigner();
   const [qrProcessed, setQRProcessed] = useState(false);
-  
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const formatDate = (dateString) => {
     const options = { year: "numeric", month: "2-digit", day: "2-digit" };
@@ -74,7 +74,7 @@ const EventDetail = ({ eventId, qrCode, currentWallet }) => {
     if (!qrData || !signer || qrProcessed) return;
     try {
       const signature = await signer.signMessage(`Adding contribution to event with ID: ${qrData.eventId}`);
-      setConsoleLog(`Signa ${signature}`);
+      setConsoleLog(`Signature ${signature}`);
       // Logic to update the database goes here
       const response = await fetch(`/api/events/updateEvent/${qrData.eventId}`, {
         method: "POST",
@@ -158,6 +158,8 @@ const EventDetail = ({ eventId, qrCode, currentWallet }) => {
   }, [qrCode, currentWallet, event, isFacilitator]);
    */
 
+
+
   if (!event) return <div>Loading...</div>;
 
   return (
@@ -184,7 +186,15 @@ const EventDetail = ({ eventId, qrCode, currentWallet }) => {
           <p>{event.description}</p>
         </div>
       </div>
-      {isFacilitator && (
+      {!currentWallet && (
+        <button
+          className={styles.loginButton}
+          onClick={() => setShowLoginModal(true)}
+        >
+          Log In
+        </button>
+      )}
+      {currentWallet && isFacilitator && (
         <div className={styles.eventActions}>
           <span
             className={styles.navItem}
@@ -210,13 +220,16 @@ const EventDetail = ({ eventId, qrCode, currentWallet }) => {
           </Link>
         </div>
       )}
-      {isContributor && (
+      {currentWallet && isContributor && !isFacilitator && (
         <div className={styles.eventActions}>
           <span className={styles.navItem}>{consoleLog} </span>
           <Link href="/" className={styles.navItem}>
             <FontAwesomeIcon icon={faNetworkWired} /> Join Event
           </Link>
         </div>
+      )}
+      {showLoginModal && (
+        <LoginModal  />
       )}
       <div className={styles.contributorsSection}>
         <span className={styles.contributorsSectionHeader}>Contributors</span>
