@@ -96,7 +96,7 @@ const AddContributionModal = ({ eventId, onClose }) => {
     <div className={styles.modalBackdrop}>
       <div className={styles.modalContent}>
         <div className={styles.modalHeader}>
-          
+           <h3 className={styles.modalHeaderText}>Add Contribution</h3>
           <button className={styles.closeButton} onClick={onClose}>
             &times;
           </button>
@@ -109,9 +109,11 @@ const AddContributionModal = ({ eventId, onClose }) => {
           className={styles.contributionForm}
         >
           <div className={styles.inputsContainer}>
+            
             <div className={styles.formGroup}>
               {latestContributor && (
                 <div className={styles.latestContributorContainer}>
+                 
                 <img className={styles.latestContributorAvatar} src={avatarURL} alt="Latest Contributor Avatar" />
                 <div className={styles.latestContributor}>
                   {shortenedWallet}

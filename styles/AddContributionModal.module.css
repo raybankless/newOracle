@@ -26,12 +26,18 @@
   justify-content: flex-end;
   margin-bottom: 1rem;
 }
+
+.modalHeaderText {
+  width: 100%;
+  justify-content:flex-start;
+}
+
 .closeButton {
   background-color: #d9534f;
   color: white;
   border: none;
   border-radius: 5px;
-  padding: 10px 20px;
+  padding: 20px;
   cursor: pointer;
   font-size: 1rem;
   float: right;
@@ -82,6 +88,7 @@
   display :flex;
   gap:10px;
   align-items: center;
+  justify-content: center;
   margin-bottom:20px;
 } 
 
