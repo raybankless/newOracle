@@ -80,7 +80,13 @@ const EventDetail = ({ eventId, qrCode, currentWallet }) => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          update: { $push: { allowListed: currentWallet } },
+          update: {
+            allowListed: {
+              wallet: currentWallet,
+              measurement: 10,
+              unit: "kg"
+            }
+          }
         }),
       });
 

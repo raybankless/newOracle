@@ -2,11 +2,16 @@
 import React, { useEffect, useState } from "react";
 import QRCode from "qrcode.react";
 import styles from "../styles/AddContributionModal.module.css";
+import { useAddress } from "@thirdweb-dev/react";
 
-const AddContributionModal = ({ eventId, onClose, contributors }) => {
+const AddContributionModal = ({ eventId, onClose }) => {
+  const [latestContributor, setLatestContributor] = useState("");
+  const [shortenedWallet, setShortenedWallet] = useState("");
   const [measurement, setMeasurement] = useState("");
   const [unit, setUnit] = useState("");
   const [qrValue, setQrValue] = useState("");
+  const currentWallet = useAddress();
+  const [avatarURL, setAvatarURL] = useState("");
 
   useEffect(() => {
     const qrData = {
@@ -16,23 +21,82 @@ const AddContributionModal = ({ eventId, onClose, contributors }) => {
     };
     const encodedQRData = encodeURIComponent(JSON.stringify(qrData));
     console.log("encodedQRData : ", encodedQRData);
-      setQrValue(`${window.location.origin}/dashboard?data=${encodedQRData}`);
-    
+    setQrValue(`${window.location.origin}/dashboard?data=${encodedQRData}`);
   }, [eventId]);
-  
+
   console.log("qrValue : ", qrValue);
-  
-  const handleContributionSubmit = (e) => {
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      fetch(`/api/events/${eventId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            console.log("data : ", data);
+            const allowListed = data.event.allowListed;
+            if (allowListed.length > 0) {
+              // Assuming allowListed is an array of objects with 'wallet', 'measurement', and 'unit'
+              const lastContributor = allowListed[allowListed.length - 1];
+              console.log("lastContributor : ", lastContributor);
+              setLatestContributor(lastContributor);
+            }
+          }
+        })
+        .catch((error) =>
+          console.error("Failed to fetch event details:", error),
+        );
+    }, 20000); // Poll every 20 seconds
+
+    return () => clearInterval(intervalId);
+  }, [eventId]);
+
+  useEffect(() => {
+    if (latestContributor) {
+      setShortenedWallet(
+        latestContributor.wallet.slice(0, 6) +
+          "..." +
+          latestContributor.wallet.slice(-4),
+      );
+        setAvatarURL ( `https://source.boringavatars.com/beam/28/${currentWallet}?colors=CCCC66,A8BF73,80B380,80B380,34999B`)
+    }
+  }, [latestContributor]);
+
+  // Handle form submission
+  const handleContributionSubmit = async (e) => {
     e.preventDefault();
-    console.log("Contribution details:", measurement, unit);
-    // Here, implement your logic to handle the contribution details submission.
-    onClose(); // Assuming onClose will close the modal.
+    try {
+      const response = await fetch(`/api/events/updateEvent/${eventId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ wallet: currentWallet, measurement, unit }), // Replace "currentWallet" with actual current wallet variable
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        console.log("Contribution added successfully : ", data.event);
+        setMeasurement("");
+        setUnit("");
+        // Optionally refresh contributors list immediately
+        /*   fetch(`/api/events/${eventId}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+                setEvent(data.event);
+            }
+          });*/
+      } else {
+        console.error("Failed to add contribution:", data.message);
+      }
+    } catch (error) {
+      console.error("Failed to submit contribution:", error);
+    }
   };
 
   return (
     <div className={styles.modalBackdrop}>
       <div className={styles.modalContent}>
         <div className={styles.modalHeader}>
+          
           <button className={styles.closeButton} onClick={onClose}>
             &times;
           </button>
@@ -40,9 +104,20 @@ const AddContributionModal = ({ eventId, onClose, contributors }) => {
         <div className={styles.qrCodeContainer}>
           <QRCode value={qrValue} size={256} />
         </div>
-        <form onSubmit={handleContributionSubmit} className={styles.contributionForm}>
+        <form
+          onSubmit={handleContributionSubmit}
+          className={styles.contributionForm}
+        >
           <div className={styles.inputsContainer}>
             <div className={styles.formGroup}>
+              {latestContributor && (
+                <div className={styles.latestContributorContainer}>
+                <img className={styles.latestContributorAvatar} src={avatarURL} alt="Latest Contributor Avatar" />
+                <div className={styles.latestContributor}>
+                  {shortenedWallet}
+                </div>
+                  </div>
+              )}
               <label>Measurement:</label>
               <input
                 type="number"
@@ -61,11 +136,9 @@ const AddContributionModal = ({ eventId, onClose, contributors }) => {
               />
             </div>
           </div>
-          <div className={styles.contributorsList}>
-            {/* Minified version of contributors list */}
-            
-          </div>
-          <button type="submit" className={styles.submitButton}>Add Contribution</button>
+          <button type="submit" className={styles.submitButton}>
+            Add Contribution
+          </button>
         </form>
       </div>
     </div>

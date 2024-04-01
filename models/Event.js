@@ -13,7 +13,9 @@ const eventSchema = new mongoose.Schema({
   closed: { type: Boolean, default: false },
   additionalInfoLink: { type: String, required: true },
   allowListed: [{
-    type: String,
+    wallet: String,
+    measurement: Number,
+    unit: String,
   }],
   whiteListed: [{
     type: String,

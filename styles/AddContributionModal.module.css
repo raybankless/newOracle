@@ -78,3 +78,17 @@
   justify-content: center;
   padding: 20px 0;
 }
+.latestContributorContainer {
+  display :flex;
+  gap:10px;
+  align-items: center;
+  margin-bottom:20px;
+} 
+
+.latestContributor {
+  
+} 
+
+.latestContributorAvatar {
+
+} 

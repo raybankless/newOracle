@@ -142,7 +142,7 @@ const Dashboard = () => {
           </>
         )}
       </main>
-      <RightSidebar />
+      
     </div>
   );
 };
