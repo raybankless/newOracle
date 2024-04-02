@@ -66,10 +66,15 @@ const AddContributionModal = ({ eventId, onClose }) => {
   const handleContributionSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`/api/events/ahmetCont/${eventId}`, {
+      const response = await fetch(`/api/events/modifyDB/${eventId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ wallet: currentWallet, measurement, unit }), // Replace "currentWallet" with actual current wallet variable
+        body: JSON.stringify({
+          action: 'updateContribution',
+          wallet: latestContributor.wallet,
+          measurement: measurement,
+          unit: unit
+        }),
       });
 
       const data = await response.json();

@@ -51,6 +51,29 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
     }
   }
 
+  async function testTx() {
+    try {
+      const response = await fetch(`/api/events/modifyDB/${event._id}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "updateTxHash",
+            txHash: "testHash", // Ensure this is the correct property for the tx hash
+          }),
+        });
+      const data = await response.json();
+      if (data.success) {
+        console.log("Contribution added successfully : ", data.event);
+        setMeasurement("");
+        setUnit("");
+      } else {
+        console.error("Failed to add contribution:", data.message);
+      }
+    } catch (error) {
+      console.error("Failed to submit contribution:", error);
+    }
+  }
+
   const mintEvent = async () => {
     if (!window.ethereum) {
       console.log("MetaMask is not installed!");
@@ -118,19 +141,18 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
         easContractAddress: currentWallet,
       });
 
-      const tx = await client.mintClaim(metadata, units, restrictions);
-
+      //const tx = await client.mintClaim(metadata, units, restrictions);
+      const tx = "0xE23sd902kd02ps09O83";
       // Assuming `event._id` represents your event identifier
       const eventId = event._id;
 
       // Call the updated event API endpoint to store the tx hash
-      await fetch(`/api/events/updateEvent/${eventId}`, {
+      await fetch(`/api/events/modifyDB/${eventId}`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          update: { txHash: tx },
+          action: "updateTxHash",
+          txHash: tx, // Ensure this is the correct property for the tx hash
         }),
       })
         .then((response) => response.json())
@@ -155,8 +177,9 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
 
   return (
     <div className={styles.mintButtonContainer}>
-      <button className={styles.mintButton} onClick={mintEvent}>
-        Mint Event
+      
+      <button className={styles.mintButton} onClick={testTx}>
+        Test tx
       </button>
     </div>
   );

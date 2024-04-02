@@ -68,6 +68,30 @@ const EventDetail = ({ eventId, qrCode, currentWallet }) => {
     }
   }, [qrCode]);
 
+  const addRandomWallet = async () => {
+    try {
+      // Logic to update the database goes here
+      const response = await fetch(`/api/events/modifyDB/${eventId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "addContributor",
+          wallet: currentWallet, // Make sure this is the wallet address of the contributor
+        }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+
+         setConsoleLog(`Allowlist updated successfully for event ID: ${data.event.name}`);
+      } else {
+          setConsoleLog(`Failed to update allowlist for event ID: ${qrData.eventId}`);
+      }
+    } catch (error) {
+      console.error("Error processing QR data or signing message:", error);
+    }
+  }
+
   const processQRCode = async (qrData) => {
     if (!qrData || !signer || qrProcessed) return;
     try {
@@ -96,69 +120,6 @@ const EventDetail = ({ eventId, qrCode, currentWallet }) => {
       console.error("Error processing QR data or signing message:", error);
     }
   };
-
-  /*
-  useEffect(() => {
-    const defineRole = async () => {
-      //console.log("event3 : ", event.creatorWallet);
-      if (
-        event &&
-        event.creatorWallet=== currentWallet
-      ) {
-        setIsFacilitator(true);
-        console.log("isFacilitator", isFacilitator);
-      }
-      if (qrCode) {
-        setIsContributor(true);
-        console.log("isContributor", isContributor);
-        //const addBase = await QRDetection(qrCode, currentWallet);
-        //setContributionSignature(`QRDetection return ${addBase}`);
-        //console.log("addBase : ", addBase);
-        try {
-
-          if (qrCode.action !== "contribute" || !qrCode.eventId) {
-            console.error("Invalid QR data");
-           
-
-            return null;
-          }
-
-          console.log("Event ID from QR:", qrCode.eventId);
-          
-
-          // Assume `useSigner` hook is used outside and signer object is passed as an argument
-          
-          const signature = await signer.signMessage(`Adding contribution to event with ID: ${qrCode.eventId}`);
-          console.log("Contribution signature:", signature);
-          
-          // Update the allowListed field in the database for this event
-          const response = await fetch(`/api/events/updateEvent/${qrCode.eventId}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              update: { $push: { allowListed: currentWallet } },
-            }),
-          });
-
-          const data = await response.json();
-          
-          if (data.success) {
-            console.log("Allowlist updated successfully", data.event);
-            setContributionSignature (`signature: ${data.event.allowListed}` )
-          } else {
-            console.error("Failed to update allowlist", data.message);
-          }
-
-        } catch (error) {
-          console.error("Error processing QR data:", error);
-          return null;
-        }
-      }
-    };
-
-    defineRole();
-  }, [qrCode, currentWallet, event, isFacilitator]);
-   */
 
   if (!event) return <div>Loading...</div>;
 

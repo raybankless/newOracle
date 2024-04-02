@@ -1,6 +1,6 @@
-// /pages/api/events/updateEvent/[eventId].js
-import dbConnect from '../../../../utils/dbConnect';
-import Event from '../../../../models/Event';
+// /pages/api/events/modifyDB/[eventId].js
+import dbConnect from "../../../../utils/dbConnect";
+import Event from "../../../../models/Event";
 
 export default async function handler(req, res) {
   const {
@@ -10,39 +10,40 @@ export default async function handler(req, res) {
 
   await dbConnect();
 
-  if (req.method !== 'POST') {
-    res.setHeader('Allow', ['POST']);
+  if (req.method !== "POST") {
+    res.setHeader("Allow", ["POST"]);
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
   try {
-    let updatedEvent;
-
     switch (action) {
-      case 'addContributor':
-      const result = await addContributor(eventId, req.body);
-      if (!result.success) {
-        return res.status(400).json(result);
-      }
-      return res.status(200).json(result);
-      break;
-      case 'updateContribution':
-        // Logic for updating contribution details
-        updatedEvent = await updateContribution(eventId, updateData);
+      case "addContributor":
+        const addResult = await addContributor(eventId, req.body);
+        if (!addResult.success) {
+          return res.status(400).json(addResult);
+        }
+        return res.status(200).json(addResult);
         break;
-      case 'mintEvent':
-        // Logic for minting the event
-        updatedEvent = await mintEvent(eventId, updateData);
+      case "updateContribution":
+        const updateResult = await updateContribution(eventId, updateData);
+        if (!updateResult.success) {
+          return res.status(400).json(updateResult);
+        }
+        return res.status(200).json(updateResult);
+        break;
+      case "updateTxHash":
+        const txHashResult = await updateTxHash(eventId, updateData);
+        if (!txHashResult.success) {
+          return res.status(400).json(txHashResult);
+        }
+        return res.status(200).json(txHashResult);
         break;
       default:
-        return res.status(400).json({ success: false, message: 'Invalid action specified' });
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid action specified" });
     }
 
-    if (!updatedEvent) {
-      return res.status(404).json({ success: false, message: 'Event not found or update failed' });
-    }
-
-    res.status(200).json({ success: true, message: 'Event updated successfully', event: updatedEvent });
   } catch (error) {
     res.status(400).json({ success: false, error: error.message });
   }
@@ -61,17 +62,17 @@ async function addContributor(eventId, { wallet }) {
             measurement: 0, // Initial value, assuming it gets updated later
             unit: "", // Initial value, assuming it gets updated later
             proof: [], // Initial empty array, assuming it gets filled later
-          }
-        }
+          },
+        },
       },
       {
         new: true, // Return the modified document
-        runValidators: true // Ensure schema validations run on update
-      }
+        runValidators: true, // Ensure schema validations run on update
+      },
     );
 
     if (!updateResult) {
-      return { success: false, message: 'Event not found or update failed' };
+      return { success: false, message: "Event not found or update failed" };
     }
 
     return { success: true, event: updateResult };
@@ -81,10 +82,45 @@ async function addContributor(eventId, { wallet }) {
   }
 }
 
-async function updateContribution(eventId, { wallet, measurement, unit, proof }) {
-  // Implementation for updating a contribution
+async function updateContribution(eventId, { wallet, measurement, unit }) {
+  try {
+    const updatedEvent = await Event.findOneAndUpdate(
+      { _id: eventId, "allowListed.wallet": wallet },
+      {
+        $set: {
+          "allowListed.$.measurement": measurement,
+          "allowListed.$.unit": unit,
+        },
+      },
+      { new: true },
+    );
+
+    if (!updatedEvent) {
+      return { success: false, message: "Contributor or event not found" };
+    }
+
+    return { success: true, event: updatedEvent };
+  } catch (error) {
+    console.error("Error updating contribution:", error);
+    return { success: false, message: error.toString() };
+  }
 }
 
-async function mintEvent(eventId, data) {
-  // Implementation for minting the event
+async function updateTxHash(eventId, { txHash }) {
+  try {
+    const updatedEvent = await Event.findOneAndUpdate(
+      { _id: eventId },
+      { txHash: txHash }, // Ensure your schema supports this field
+      { new: true },
+    );
+
+    if (!updatedEvent) {
+      return { success: false, message: "Event not found" };
+    }
+
+    return { success: true, event: updatedEvent };
+  } catch (error) {
+    console.error("Error updating transaction hash:", error);
+    return { success: false, message: error.toString() };
+  }
 }
