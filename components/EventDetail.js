@@ -68,39 +68,35 @@ const EventDetail = ({ eventId, qrCode, currentWallet }) => {
     }
   }, [qrCode]);
 
-  
-
   const processQRCode = async (qrData) => {
     if (!qrData || !signer || qrProcessed) return;
     try {
-      const signature = await signer.signMessage(`Adding contribution to event with ID: ${qrData.eventId}`);
+      const signature = await signer.signMessage(
+        `Adding contribution to event with ID: ${qrData.eventId}`,
+      );
       setConsoleLog(`Signature ${signature}`);
       // Logic to update the database goes here
-      const response = await fetch(`/api/events/updateEvent/${qrData.eventId}`, {
+      const response = await fetch(`/api/events/modifyDB/${eventId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          update: {
-            allowListed: {
-              wallet: currentWallet,
-              measurement: 10,
-              unit: "kg"
-            }
-          }
+          action: "addContributor",
+          wallet: currentWallet, // Make sure this is the wallet address of the contributor
         }),
       });
-
+      
       const data = await response.json();
       if (data.success) {
-       // setConsoleLog(`Allowlist updated successfully for event ID: ${qrData.eventId}`);
+        
+         setConsoleLog(`Allowlist updated successfully for event ID: ${data.event.name}`);
       } else {
-      //  setConsoleLog(`Failed to update allowlist for event ID: ${qrData.eventId}`);
+          setConsoleLog(`Failed to update allowlist for event ID: ${qrData.eventId}`);
       }
     } catch (error) {
       console.error("Error processing QR data or signing message:", error);
     }
   };
-  
+
   /*
   useEffect(() => {
     const defineRole = async () => {
@@ -163,8 +159,6 @@ const EventDetail = ({ eventId, qrCode, currentWallet }) => {
     defineRole();
   }, [qrCode, currentWallet, event, isFacilitator]);
    */
-
-
 
   if (!event) return <div>Loading...</div>;
 
@@ -234,9 +228,7 @@ const EventDetail = ({ eventId, qrCode, currentWallet }) => {
           </Link>
         </div>
       )}
-      {showLoginModal && (
-        <LoginModal  />
-      )}
+      {showLoginModal && <LoginModal />}
       <div className={styles.contributorsSection}>
         <span className={styles.contributorsSectionHeader}>Contributors</span>
         {/* List of contributors */}

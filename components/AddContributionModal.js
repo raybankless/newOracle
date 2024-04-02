@@ -19,12 +19,11 @@ const AddContributionModal = ({ eventId, onClose }) => {
       eventId: eventId,
       timestamp: new Date().getTime(),
     };
+    
     const encodedQRData = encodeURIComponent(JSON.stringify(qrData));
-    console.log("encodedQRData : ", encodedQRData);
+
     setQrValue(`${window.location.origin}/dashboard?data=${encodedQRData}`);
   }, [eventId]);
-
-  console.log("qrValue : ", qrValue);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -57,7 +56,9 @@ const AddContributionModal = ({ eventId, onClose }) => {
           "..." +
           latestContributor.wallet.slice(-4),
       );
-        setAvatarURL ( `https://source.boringavatars.com/beam/28/${currentWallet}?colors=CCCC66,A8BF73,80B380,80B380,34999B`)
+      setAvatarURL(
+        `https://source.boringavatars.com/beam/28/${currentWallet}?colors=CCCC66,A8BF73,80B380,80B380,34999B`,
+      );
     }
   }, [latestContributor]);
 
@@ -65,7 +66,7 @@ const AddContributionModal = ({ eventId, onClose }) => {
   const handleContributionSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`/api/events/updateEvent/${eventId}`, {
+      const response = await fetch(`/api/events/ahmetCont/${eventId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ wallet: currentWallet, measurement, unit }), // Replace "currentWallet" with actual current wallet variable
@@ -96,7 +97,7 @@ const AddContributionModal = ({ eventId, onClose }) => {
     <div className={styles.modalBackdrop}>
       <div className={styles.modalContent}>
         <div className={styles.modalHeader}>
-           <h3 className={styles.modalHeaderText}>Add Contribution</h3>
+          <h3 className={styles.modalHeaderText}>Add Contribution</h3>
           <button className={styles.closeButton} onClick={onClose}>
             &times;
           </button>
@@ -109,16 +110,18 @@ const AddContributionModal = ({ eventId, onClose }) => {
           className={styles.contributionForm}
         >
           <div className={styles.inputsContainer}>
-            
             <div className={styles.formGroup}>
               {latestContributor && (
                 <div className={styles.latestContributorContainer}>
-                 
-                <img className={styles.latestContributorAvatar} src={avatarURL} alt="Latest Contributor Avatar" />
-                <div className={styles.latestContributor}>
-                  {shortenedWallet}
-                </div>
+                  <img
+                    className={styles.latestContributorAvatar}
+                    src={avatarURL}
+                    alt="Latest Contributor Avatar"
+                  />
+                  <div className={styles.latestContributor}>
+                    {shortenedWallet}
                   </div>
+                </div>
               )}
               <label>Measurement:</label>
               <input

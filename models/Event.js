@@ -16,6 +16,7 @@ const eventSchema = new mongoose.Schema({
     wallet: String,
     measurement: Number,
     unit: String,
+    proof:[String]
   }],
   whiteListed: [{
     type: String,
