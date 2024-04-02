@@ -53,6 +53,7 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
 
   async function testTx() {
     try {
+      console.log(event);
       const response = await fetch(`/api/events/modifyDB/${event._id}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -63,11 +64,11 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
         });
       const data = await response.json();
       if (data.success) {
-        console.log("Contribution added successfully : ", data.event);
-        setMeasurement("");
-        setUnit("");
+        console.log("Transaction hash updated successfully:", data);
+        onMintSuccess(tx);
       } else {
-        console.error("Failed to add contribution:", data.message);
+        console.error("Failed to update transaction hash:", data.message);
+        onMintError(new Error("Failed to update transaction hash"));
       }
     } catch (error) {
       console.error("Failed to submit contribution:", error);
@@ -141,34 +142,25 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
         easContractAddress: currentWallet,
       });
 
-      //const tx = await client.mintClaim(metadata, units, restrictions);
-      const tx = "0xE23sd902kd02ps09O83";
-      // Assuming `event._id` represents your event identifier
-      const eventId = event._id;
+      const tx = await client.mintClaim(metadata, units, restrictions);
 
       // Call the updated event API endpoint to store the tx hash
-      await fetch(`/api/events/modifyDB/${eventId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "updateTxHash",
-          txHash: tx, // Ensure this is the correct property for the tx hash
-        }),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.success) {
-            console.log("Transaction hash updated successfully:", data);
-            onMintSuccess(tx);
-          } else {
-            console.error("Failed to update transaction hash:", data.message);
-            onMintError(new Error("Failed to update transaction hash"));
-          }
-        })
-        .catch((error) => {
-          console.error("Error updating transaction hash:", error);
-          onMintError(error);
+      const response = await fetch(`/api/events/modifyDB/${event._id}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "updateTxHash",
+            txHash: tx, // Ensure this is the correct property for the tx hash
+          }),
         });
+      const data = await response.json();
+      if (data.success) {
+        console.log("Transaction hash updated successfully:", data);
+        onMintSuccess(tx);
+      } else {
+        console.error("Failed to update transaction hash:", data.message);
+        onMintError(new Error("Failed to update transaction hash"));
+      }
     } catch (error) {
       console.error("Failed to mint Hypercert:", error);
       onMintError(error);
@@ -177,7 +169,9 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
 
   return (
     <div className={styles.mintButtonContainer}>
-      
+      <button className={styles.mintButton} onClick={mintEvent}>
+        Mint Event
+      </button>
       <button className={styles.mintButton} onClick={testTx}>
         Test tx
       </button>

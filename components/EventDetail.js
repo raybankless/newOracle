@@ -14,6 +14,7 @@ import {
 import Link from "next/link";
 import AddContributionModal from "./AddContributionModal";
 import { useSigner, useAddress } from "@thirdweb-dev/react";
+import MintEventButton from "../components/MintEvent";
 
 const EventDetail = ({ eventId, qrCode, currentWallet }) => {
   const [event, setEvent] = useState(null);
@@ -176,9 +177,10 @@ const EventDetail = ({ eventId, qrCode, currentWallet }) => {
           <Link href="/" className={styles.navItem}>
             <FontAwesomeIcon icon={faEdit} /> Edit Event
           </Link>
-          <Link href="/" className={styles.navItem}>
-            <FontAwesomeIcon icon={faCoins} /> Mint Event
-          </Link>
+          <MintEventButton
+            event={event} 
+            onMintSuccess={(tx) => console.log('Minted successfully', tx)}
+            onMintError={(error) => console.error('Minting error', error)}/>
         </div>
       )}
       {currentWallet && isContributor && !isFacilitator && (
