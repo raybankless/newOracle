@@ -65,33 +65,10 @@ const EventDetail = ({ eventId, qrCode, currentWallet }) => {
     if (isContributor && !qrProcessed && currentWallet && signer) {
       processQRCode(qrCode).then(() => {
         setQRProcessed(true); // Ensure this is set after successful QR processing
+        console.log ("event from detail : ", event)
       });
     }
   }, [qrCode]);
-
-  const addRandomWallet = async () => {
-    try {
-      // Logic to update the database goes here
-      const response = await fetch(`/api/events/modifyDB/${eventId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "addContributor",
-          wallet: currentWallet, // Make sure this is the wallet address of the contributor
-        }),
-      });
-
-      const data = await response.json();
-      if (data.success) {
-
-         setConsoleLog(`Allowlist updated successfully for event ID: ${data.event.name}`);
-      } else {
-          setConsoleLog(`Failed to update allowlist for event ID: ${qrData.eventId}`);
-      }
-    } catch (error) {
-      console.error("Error processing QR data or signing message:", error);
-    }
-  }
 
   const processQRCode = async (qrData) => {
     if (!qrData || !signer || qrProcessed) return;

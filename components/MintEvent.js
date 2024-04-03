@@ -11,6 +11,9 @@ import {
 import { optimism } from "viem/chains";
 import { createWalletClient, custom } from "viem";
 import { useState } from "react";
+import { generateMerkleTree, getMerkleProof } from "../utils/merkleTree";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCoins } from "@fortawesome/free-solid-svg-icons";
 
 const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
   const currentWallet = useAddress();
@@ -51,30 +54,6 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
     }
   }
 
-  async function testTx() {
-    try {
-      console.log(event);
-      const response = await fetch(`/api/events/modifyDB/${event._id}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "updateTxHash",
-            txHash: "testHash", // Ensure this is the correct property for the tx hash
-          }),
-        });
-      const data = await response.json();
-      if (data.success) {
-        console.log("Transaction hash updated successfully:", data);
-        onMintSuccess(tx);
-      } else {
-        console.error("Failed to update transaction hash:", data.message);
-        onMintError(new Error("Failed to update transaction hash"));
-      }
-    } catch (error) {
-      console.error("Failed to submit contribution:", error);
-    }
-  }
-
   const mintEvent = async () => {
     if (!window.ethereum) {
       console.log("MetaMask is not installed!");
@@ -91,11 +70,6 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
     const tempAddress = await signer.getAddress();
     setAccount(tempAccount);
     setAddress(tempAddress);
-
-    console.log("account");
-    console.log(account);
-    console.log("adress");
-    console.log(address);
 
     const wallet = createWalletClient({
       account: address,
@@ -124,7 +98,7 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
         ),
         impactTimeframeEnd: 0,
         workScope: event.scopeOfWork,
-        contributors: [`Event Admin: ${event.creatorWallet}`],
+        contributors: [`Event Facilitator: ${event.creatorWallet}`],
         rights: ["Public Display"],
       });
       if (!valid) {
@@ -132,27 +106,86 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
         return;
       }
 
-      const units = BigInt(100);
       const restrictions = TransferRestrictions.FromCreatorOnly;
+console.log ("event : ", event);
+      // Retrieve allowlist from event data
+      const allowlist = event.allowListed.map((entry) => ({
+        address: entry.wallet,
+        units: BigInt(entry.measurement), // Convert measurement to BigInt
+      }));
+      console.log("allowlist : ", allowlist);
 
-      // Minting the Hypercert
+      // Total units are the sum of all individual measurements
+      const totalUnits = allowlist.reduce(
+        (sum, contributor) => sum + contributor.units,
+        BigInt(0),
+      );
+
+      // Generate Merkle tree
+      const tree = generateMerkleTree(allowlist);
+      console.log("tree : ", tree);
+      // const root = tree.getHexRoot();
+
+     /* const testAllowList = [
+        { address: '0x62B69abC7Aad7623F33ac8820893A37218bffce2', units: BigInt(10) },
+        { address: '0x5770b2648B0b9b48E82Fb2A5670e07691Ca77f08', units: BigInt(20) }
+      ];*/
+
       const client = new HypercertClient({
         chain: { id: 10 },
         walletClient: wallet,
         easContractAddress: currentWallet,
       });
 
-      const tx = await client.mintClaim(metadata, units, restrictions);
+      console.log(Array.isArray(allowlist), allowlist);
+      
+      // Mint the hypercert with the allowlist (root) (pseudo code)
+      const txHash = await client.createAllowlist({
+        allowList : tree,
+        metaData: metadata,
+        totalUnits: totalUnits,
+        transferRestriction: restrictions,
+      });
+      console.log("txHash : ", txHash);
+      // Store proofs in the database for each address
+      allowlist.forEach(async (item) => {
+        const proof = getMerkleProof(tree, item.address);
+        console.log("Proof:", proof);
+        // Update your Event model to include the proof for the address
+        try {
+          const response = await fetch(`/api/events/modifyDB/${eventId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "updateProof",
+              proof: proof,
+            }),
+          });
 
-      // Call the updated event API endpoint to store the tx hash
+          const data = await response.json();
+          if (data.success) {
+            console.log("Contribution added successfully : ", data.event);
+            setMeasurement("");
+            setUnit("");
+          } else {
+            console.error("Failed to add contribution:", data.message);
+          }
+        } catch (error) {
+          console.error("Failed to submit contribution:", error);
+        }
+      });
+
+      // const tx = await client.mintClaim(metadata, units, restrictions);
+
+      // Store the tx hash
       const response = await fetch(`/api/events/modifyDB/${event._id}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "updateTxHash",
-            txHash: tx, // Ensure this is the correct property for the tx hash
-          }),
-        });
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "updateTxHash",
+          txHash: txHash, // Ensure this is the correct property for the tx hash
+        }),
+      });
       const data = await response.json();
       if (data.success) {
         console.log("Transaction hash updated successfully:", data);
@@ -169,12 +202,10 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
 
   return (
     <div className={styles.mintButtonContainer}>
-      <button className={styles.mintButton} onClick={mintEvent}>
+      <span className={styles.navItem} onClick={mintEvent}>
+        <FontAwesomeIcon icon={faCoins} />
         Mint Event
-      </button>
-      <button className={styles.mintButton} onClick={testTx}>
-        Test tx
-      </button>
+      </span>
     </div>
   );
 };

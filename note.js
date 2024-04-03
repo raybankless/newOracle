@@ -43,7 +43,7 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
         [entry.address, entry.units]
       );
       const proof = tree.getHexProof(leaf);
-
+      }
       // Create a new HypercertClient and mint the token
       const hypercertClient = new HypercertClient({
         // Your HypercertClient configuration...
@@ -63,7 +63,7 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
         console.error("Minting error for address:", entry.address, error);
         // Handle errors, e.g., updating the UI
       }
-    }
+    
   };
 
   return (
@@ -76,3 +76,72 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
 };
 
 export default MintEventButton;
+
+
+
+
+
+app.post('/api/events/modifyDB/${eventId}', async (req, res) => {
+  
+  
+  
+
+
+
+
+
+
+
+  // Respond with success message
+  res.json({ success: true, message: 'Hypercert minted and proofs stored.', txHash });
+});
+
+import { generateMerkleTree, getMerkleProof } from '../../../utils/merkleTree';
+
+// Retrieve allowlist from event data
+const allowlist = event.allowListed.map((entry) => ({
+  address: entry.wallet,
+  units: BigInt(entry.measurement), // Convert measurement to BigInt
+}));
+
+// Generate Merkle tree
+const tree = generateMerkleTree(allowlist);
+const root = tree.getHexRoot();
+
+// Mint the hypercert with the allowlist (root) (pseudo code)
+const txHash = await hypercerts.createAllowlist({
+  allowList,
+  metaData,
+  totalUnits,
+  transferRestrictions: TransferRestrictions.FromCreatorOnly,
+});
+
+// Store proofs in the database for each address
+allowlist.forEach(async (item) => {
+  const proof = getMerkleProof(tree, item.address);
+  // Update your Event model to include the proof for the address
+  try {
+    const response = await fetch(`/api/events/modifyDB/${eventId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: 'updateProof',
+        proof: proof,
+      }),
+    });
+
+    const data = await response.json();
+    if (data.success) {
+      console.log("Contribution added successfully : ", data.event);
+      setMeasurement("");
+      setUnit("");
+    } else {
+      console.error("Failed to add contribution:", data.message);
+    }
+  } catch (error) {
+    console.error("Failed to submit contribution:", error);
+  }
+});
+
+[object Object],[object Object],[object Object]
+

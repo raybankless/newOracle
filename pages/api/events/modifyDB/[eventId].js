@@ -124,3 +124,7 @@ async function updateTxHash(eventId, { txHash }) {
     return { success: false, message: error.toString() };
   }
 }
+
+async function updateProof () {
+
+}

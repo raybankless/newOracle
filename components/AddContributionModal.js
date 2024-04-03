@@ -82,14 +82,6 @@ const AddContributionModal = ({ eventId, onClose }) => {
         console.log("Contribution added successfully : ", data.event);
         setMeasurement("");
         setUnit("");
-        // Optionally refresh contributors list immediately
-        /*   fetch(`/api/events/${eventId}`)
-          .then(res => res.json())
-          .then(data => {
-            if (data.success) {
-                setEvent(data.event);
-            }
-          });*/
       } else {
         console.error("Failed to add contribution:", data.message);
       }
