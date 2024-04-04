@@ -1,4 +1,4 @@
-/* styles/CommunityModal.module.css */
+/* Update your existing CSS with these additions/changes */
 
 .modalBackdrop {
   position: fixed;
@@ -19,13 +19,14 @@
   border-radius: 5px;
   max-width: 500px;
   width: 90%;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  overflow: hidden;
 }
 
 .modalHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
 }
 
 .closeButton {
@@ -36,5 +37,47 @@
 }
 
 .modalBody {
-  /* Styles for your modal body */
+  margin-top: 20px;
+  gap:5px;
+}
+
+.safeWalletsTable {
+  width: 100%;
+  border-collapse: collapse;
+  border : 1px solid #e1e1e1;
+  border-radius : 8px;
+  
+}
+
+.tableRow {
+  cursor: pointer;
+  margin:  10px;
+  
+}
+
+.tableRow:hover {
+  background-color: #f9f9f9;
+}
+
+.tableRow td {
+   padding: 5px;
+}
+
+.avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+}
+
+.loadingCursor {
+  cursor: progress;
+}
+
+.detailsRow {
+  background-color: #f0f0f0; /* Light background for details */
+}
+
+.detailsRow td {
+  padding: 10px;
+  border-top: none; /* Removes the top border for a seamless look */
 }

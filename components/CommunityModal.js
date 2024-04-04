@@ -1,128 +1,144 @@
-// components/CommunityModal.js
-
 import React, { useState, useEffect } from 'react';
 import styles from '../styles/CommunityModal.module.css';
-import { createThirdwebClient } from "thirdweb";
-import { createWallet, injectedProvider, MetaMaskWallet } from "thirdweb/wallets";
-import {ethers} from "ethers";
-import SafeApiKit from '@safe-global/api-kit'
-import { ApiKit, SafeService } from '@safe-global/api-kit';
-
+import { ethers } from 'ethers';
+import { useRouter } from 'next/router';
 
 const CommunityModal = ({ isOpen, onClose }) => {
-  
-
-  const [walletAddress, setWalletAddress ] =  useState ("");
+  const [walletAddress, setWalletAddress] = useState("");
   const [safeWallets, setSafeWallets] = useState([]);
-  const safeService = new SafeApiKit({
-    chainId: 10n,
-    // Optional. txServiceUrl must be used to set a custom service. For example on chains where Safe doesn't run services.
-    txServiceUrl: 'https://safe-transaction-optimism.safe.global'
-  })
-
-  /* const apiKit = new ApiKit({
-    chainId: 10n,
-    // Optional. txServiceUrl must be used to set a custom service. For example on chains where Safe doesn't run services.
-    txServiceUrl: 'https://safe-transaction-optimism.safe.global'
-  }) */
-
-  
-  async function switchToOptimism() {
-    if (window.ethereum) {
-      try {
-        // Request to switch to the Optimism network (Mainnet)
-        await window.ethereum.request({
-          method: "wallet_switchEthereumChain",
-          params: [{ chainId: "0xa" }], // 0xa is the chain ID for Optimism Mainnet
-        });
-      } catch (switchError) {
-        // This error code indicates that the chain has not been added to MetaMask
-        if (switchError.code === 4902) {
-          try {
-            // Request to add the Optimism network to MetaMask
-            await window.ethereum.request({
-              method: "wallet_addEthereumChain",
-              params: [
-                {
-                  chainId: "0xa",
-                  rpcUrl: "https://mainnet.optimism.io",
-                  // Additional parameters like the chain name, symbol, and block explorer can be added here
-                },
-              ],
-            });
-          } catch (addError) {
-            console.error("Error adding Optimism network:", addError);
-          }
-        }
-        console.error("Error switching to Optimism network:", switchError);
-      }
-    } else {
-      console.log("MetaMask is not installed!");
-    }
-  }
-  // if user has metamask installed, connect to it
-  const connect = async () => 
-  {
-    if (!window.ethereum) {
-      console.log("MetaMask is not installed!");
-      return;
-    }
-
-    await switchToOptimism();
-
-    await window.ethereum.request({ method: "eth_requestAccounts" }); // Request user to connect their MetaMask
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const signer = provider.getSigner();
-    await provider.send("eth_accounts", []);
-    const tempAccount = await ethereum.request({ method: "eth_accounts" });
-    const tempAddress = await signer.getAddress();
-    setWalletAddress(tempAddress);
-    console.log("Connected to MetaMask:", walletAddress);
-
-    //const safes = await safeService.getSafesByOwner(walletAddress)
-    //console.log("Safes:", safes);
-    
-  }
+  const [expandedSafe, setExpandedSafe] = useState(null);
+  const [selectedSafe, setSelectedSafe] = useState(null);
+  const [owners, setOwners] = useState([]);
+  const [threshold, setThreshold] = useState(null);
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (isOpen) {
-      connect();
-    }
-    
+    const connectToBlockchain = async () => {
+      if (!window.ethereum) {
+        console.log("MetaMask is not installed!");
+        return;
+      }
+      try {
+        await window.ethereum.request({ method: "eth_requestAccounts" });
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const address = await signer.getAddress();
+        setWalletAddress(address);
+      } catch (error) {
+        console.error("Error connecting to MetaMask:", error);
+      }
+    };
+    if (isOpen) connectToBlockchain();
   }, [isOpen]);
 
   useEffect(() => {
-    if (walletAddress) {
-      fetchSafeWallets();
-    }
+    const fetchSafeWallets = async () => {
+      if (!walletAddress) return;
+      try {
+        const response = await fetch(`https://safe-transaction-optimism.safe.global/api/v1/owners/${walletAddress}/safes/`, {
+          headers: { 'Accept': 'application/json' },
+        });
+        if (!response.ok) {
+          throw new Error(`Error fetching safes: ${response.statusText}`);
+        }
+        const data = await response.json();
+        setSafeWallets(data.safes);
+      } catch (error) {
+        console.error("Error fetching Safe Wallets:", error);
+      }
+    };
+    fetchSafeWallets();
   }, [walletAddress]);
 
-  const fetchSafeWallets = async () => {
-    try {
-      const safesResponse = await safeService.getSafesByOwner(walletAddress);
-      setSafeWallets(safesResponse.safes); // Adjust according to the actual response structure
-      console.log("Fetched Safe Wallets:", safesResponse.safes);
-    } catch (error) {
-      console.error("Error fetching Safe Wallets:", error);
+  const toggleSafeDetails = async (safeWallet) => {
+    const contentElementId = `details-${safeWallet}`;
+    if (expandedSafe === safeWallet) {
+      // Collapse if already expanded
+      document.getElementById(contentElementId).style.maxHeight = null;
+      setExpandedSafe(null);
+    } else {
+      // Expand new safe details...
+      setIsLoading(true); // Start loading
+      try {
+        const response = await fetch(`https://safe-transaction-optimism.safe.global/api/v1/safes/${safeWallet}`, {
+          headers: { 'Accept': 'application/json' },
+        });
+        if (!response.ok) {
+          throw new Error(`Error fetching safes: ${response.statusText}`);
+        }
+        const data = await response.json();
+        setSelectedSafe(data);
+        setOwners(data.owners);
+        setThreshold(data.threshold);
+
+        // Ensure previous expanded details are collapsed
+        if (expandedSafe) {
+          document.getElementById(`details-${expandedSafe}`).style.maxHeight = null;
+        }
+        setExpandedSafe(safeWallet);
+
+        // Wait for state and DOM update
+        setTimeout(() => {
+          document.getElementById(contentElementId).style.maxHeight = `${document.getElementById(contentElementId).scrollHeight}px`;
+          setIsLoading(false);
+        }, 0);
+      } catch (error) {
+        console.error("Error fetching Safe Wallets:", error);
+        setIsLoading(false);
+        setExpandedSafe(null);
+      }
     }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className={styles.modalBackdrop} onClick={onClose}>
+    <div className={`${styles.modalBackdrop} ${isLoading ? styles.loadingCursor : ''}`} onClick={onClose}>
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
           <h2>Create Community</h2>
           <button onClick={onClose} className={styles.closeButton}>&times;</button>
         </div>
         <div className={styles.modalBody}>
-          {/* Community creation form will go here */}
-          <ul>
-            {safeWallets.map((safeWallet) => (
-              <li key={safeWallet}>{safeWallet}</li> // Adjust based on the structure of safeWallets
-            ))}
-          </ul>
+          <table className={styles.safeWalletsTable}>
+            <thead>
+              <tr>
+                <th>Avatar</th>
+                <th>Wallet</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+            <tbody>
+              {safeWallets.map((safeWallet, index) => (
+                <React.Fragment key={index}>
+                  <tr onClick={() => toggleSafeDetails(safeWallet)} className={styles.tableRow}>
+                    <td>
+                      <img
+                        src={`https://source.boringavatars.com/beam/28/${safeWallet}?colors=E63946,F4A261,2A9D8F,264653,F4A261`}
+                        alt="Avatar"
+                        className={styles.avatar}
+                      />
+                    </td>
+                    <td>{`${safeWallet.slice(0, 6)}...${safeWallet.slice(-4)}`}</td>
+                    <td>
+                      {isLoading ? <span>Loading...</span> : <span>View Details</span>}
+                    </td>
+                  </tr>
+                  {expandedSafe === safeWallet && (
+                    <tr className={styles.detailsRow}>
+                      <td colSpan="3" className={styles.detailsCell}>
+                        <div className={styles.detailsCellInner}>
+                          <p>Owners: {owners.join(', ')}</p>
+                          <p>Threshold: {threshold}</p>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -130,7 +146,3 @@ const CommunityModal = ({ isOpen, onClose }) => {
 };
 
 export default CommunityModal;
-
-
-
-

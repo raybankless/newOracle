@@ -107,7 +107,6 @@ const EventDetail = ({ eventId, qrCode, currentWallet }) => {
     <div className={styles.eventDetail}>
       <div className={styles.header}>
         <div className={styles.eventImageContainer}>
-          {/* Replace img with Image component */}
           <img
             src={event.headerImage}
             alt={event.name}
