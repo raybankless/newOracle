@@ -22,13 +22,13 @@ const Dashboard = () => {
   const router = useRouter();
   const [qrSend, setQrSend] = useState(null);
   const [isCommunityModalOpen, setIsCommunityModalOpen] = useState(false);
-  const [selectedCommunityId, setSelectedCommunityId] = useState(null);
+  const [selectedCommunityId, setSelectedCommunityId] = useState("");
   const [showCommunityDashboard, setShowCommunityDashboard] = useState(false);
 
   const openCommunityModal = () => setIsCommunityModalOpen(true);
   const closeCommunityModal = () => setIsCommunityModalOpen(false);
 
-  const openCommunityDashboard = (communityWallet) => {
+  const openCommunityDashboard = (communityWallet: string) => {
     setSelectedCommunityId(communityWallet);
     setShowCommunityDashboard(true);
     setIsCommunityModalOpen(false);
