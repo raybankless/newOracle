@@ -16,7 +16,7 @@
 .modalContent {
   background-color: white;
   padding: 20px;
-  border-radius: 5px;
+  border-radius : 8px;
   max-width: 500px;
   width: 90%;
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
@@ -39,14 +39,13 @@
 .modalBody {
   margin-top: 20px;
   gap:5px;
+  
 }
 
 .safeWalletsTable {
   width: 100%;
-  border-collapse: collapse;
   border : 1px solid #e1e1e1;
   border-radius : 8px;
-  
 }
 
 .tableRow {
@@ -80,4 +79,27 @@
 .detailsRow td {
   padding: 10px;
   border-top: none; /* Removes the top border for a seamless look */
+}
+
+.detailsCell {
+  font-size : 0.9em;
+  transition: max-height 0.5s ease;
+  overflow: hidden;
+  max-height: 0; /* Start state */
+}
+
+.ownerAvatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  margin-right: 8px; /* Adds some space between the avatar and the owner text */
+}
+
+.loadButton {
+  background-color: #00b303;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
 }

@@ -19,6 +19,8 @@ const CommunitySchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
+  ownerWallets: [String],
+  webLink: String,
 });
 
 module.exports = mongoose.models.Community || mongoose.model('Community', CommunitySchema);

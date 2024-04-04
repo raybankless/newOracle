@@ -1,9 +1,10 @@
+// components/AddCommunityModal.js
 import React, { useState, useEffect } from 'react';
 import styles from '../styles/CommunityModal.module.css';
 import { ethers } from 'ethers';
 import { useRouter } from 'next/router';
 
-const CommunityModal = ({ isOpen, onClose }) => {
+const CommunityModal = ({ isOpen, onClose, onOpenCommunityDashboard }) => {
   const [walletAddress, setWalletAddress] = useState("");
   const [safeWallets, setSafeWallets] = useState([]);
   const [expandedSafe, setExpandedSafe] = useState(null);
@@ -51,6 +52,42 @@ const CommunityModal = ({ isOpen, onClose }) => {
     fetchSafeWallets();
   }, [walletAddress]);
 
+  const createCommunity = async (wallet) => {
+    console.log("Creating community with wallet:", wallet);
+    const communityData = {
+      name: "Mock Community Name", // You might want to change this to be dynamic or input by the user
+      image: "https://placehold.co/200x200/aed6af/586558?text=GoodOracle", // Same here
+      description: "A description for your community", // And here
+      safeWallet: selectedSafe.address, // Assuming 'selectedSafe' holds the selected safeWallet address
+      ownerWallets: owners, // 'walletAddress' is the current user's wallet address
+      webLink: "https://example.com", // Example web link
+    };
+
+    console.log("Creating community with data:", communityData);
+    
+    try {
+      const response = await fetch('/api/communities/createCommunity', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(communityData),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Community created:', data);
+        // Here you can handle the UI response, such as closing the modal or showing a success message
+      } else {
+        throw new Error('Failed to create community');
+      }
+    } catch (error) {
+      console.error('Error creating community:', error);
+      // Handle the error in your UI
+    }
+    onOpenCommunityDashboard (wallet);
+  };
+  
   const toggleSafeDetails = async (safeWallet) => {
     const contentElementId = `details-${safeWallet}`;
     if (expandedSafe === safeWallet) {
@@ -90,59 +127,59 @@ const CommunityModal = ({ isOpen, onClose }) => {
       }
     }
   };
-
   if (!isOpen) return null;
 
-  return (
-    <div className={`${styles.modalBackdrop} ${isLoading ? styles.loadingCursor : ''}`} onClick={onClose}>
-      <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.modalHeader}>
-          <h2>Create Community</h2>
-          <button onClick={onClose} className={styles.closeButton}>&times;</button>
-        </div>
-        <div className={styles.modalBody}>
-          <table className={styles.safeWalletsTable}>
-            <thead>
-              <tr>
-                <th>Avatar</th>
-                <th>Wallet</th>
-                <th>Details</th>
-              </tr>
-            </thead>
-            <tbody>
-              {safeWallets.map((safeWallet, index) => (
-                <React.Fragment key={index}>
-                  <tr onClick={() => toggleSafeDetails(safeWallet)} className={styles.tableRow}>
-                    <td>
-                      <img
-                        src={`https://source.boringavatars.com/beam/28/${safeWallet}?colors=E63946,F4A261,2A9D8F,264653,F4A261`}
-                        alt="Avatar"
-                        className={styles.avatar}
-                      />
-                    </td>
-                    <td>{`${safeWallet.slice(0, 6)}...${safeWallet.slice(-4)}`}</td>
-                    <td>
-                      {isLoading ? <span>Loading...</span> : <span>View Details</span>}
-                    </td>
-                  </tr>
-                  {expandedSafe === safeWallet && (
-                    <tr className={styles.detailsRow}>
+    return (
+      <div className={`${styles.modalBackdrop} ${isLoading ? styles.loadingCursor : ''}`} onClick={onClose}>
+        <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+          <div className={styles.modalHeader}>
+            <h2>Create Community</h2>
+            <button onClick={onClose} className={styles.closeButton}>&times;</button>
+          </div>
+          <div className={styles.modalBody}>
+            <table className={styles.safeWalletsTable}>
+
+              <tbody>
+                {safeWallets.map((safeWallet, index) => (
+                  <React.Fragment key={index}>
+                    <tr onClick={() => toggleSafeDetails(safeWallet)} className={styles.tableRow}>
+                      <td>
+                        <img
+                          src={`https://source.boringavatars.com/marble/28/${safeWallet}?colors=E63946,F4A261,2A9D8F,264653,F4A261`}
+                          alt="Avatar"
+                          className={styles.avatar}
+                        />
+                      </td>
+                      <td>{`${safeWallet.slice(0, 10)}.......${safeWallet.slice(-10)}`}</td>
+                      <td></td> 
+                    </tr>
+                    {expandedSafe === safeWallet && (
+                    <tr className={styles.detailsRow} id={`details-${safeWallet}`}>
                       <td colSpan="3" className={styles.detailsCell}>
-                        <div className={styles.detailsCellInner}>
-                          <p>Owners: {owners.join(', ')}</p>
-                          <p>Threshold: {threshold}</p>
+                        <div className={styles.detailsCellInner} style={{ overflow: "hidden", transition: "max-height 0.5s ease" }}>
+                          {/* Display each owner with an avatar */}
+                          {owners.map((owner, index) => (
+                            <p key={index}>
+                              <img src={`https://source.boringavatars.com/beam/20/${owner}?colors=E63946,F4A261,2A9D8F,264653,F4A261`} alt="Owner Avatar" className={styles.ownerAvatar} />
+                              {`${owner.slice(0, 10)}.......${owner.slice(-10)}`}
+                            </p>
+                          ))}
+                          <p>Threshold: {threshold} / {owners.length}</p>
+                          <button onClick={() => createCommunity(safeWallet)} className ={styles.loadButton} >Load Community</button>
                         </div>
                       </td>
                     </tr>
-                  )}
-                </React.Fragment>
-              ))}
-            </tbody>
-          </table>
+                    )}
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+
+
+};  
 
 export default CommunityModal;

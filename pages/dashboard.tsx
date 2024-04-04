@@ -10,7 +10,8 @@ import Link from "next/link";
 import CreateEventModal from "../components/CreateEventModal";
 import EventDetail from "../components/EventDetail";
 import { useRouter } from "next/router";
-import CommunityModal from '../components/CommunityModal';
+import CommunityModal from "../components/CommunityModal";
+import CommunityDashboard from "../components/CommunityDashboard";
 
 const Dashboard = () => {
   const currentWallet = useAddress();
@@ -21,11 +22,17 @@ const Dashboard = () => {
   const router = useRouter();
   const [qrSend, setQrSend] = useState(null);
   const [isCommunityModalOpen, setIsCommunityModalOpen] = useState(false);
+  const [selectedCommunityId, setSelectedCommunityId] = useState(null);
+  const [showCommunityDashboard, setShowCommunityDashboard] = useState(false);
 
   const openCommunityModal = () => setIsCommunityModalOpen(true);
   const closeCommunityModal = () => setIsCommunityModalOpen(false);
 
-
+  const openCommunityDashboard = (communityWallet) => {
+    setSelectedCommunityId(communityWallet);
+    setShowCommunityDashboard(true);
+    setIsCommunityModalOpen(false);
+  };
   useEffect(() => {
     const fetchEvents = async () => {
       if (currentWallet) {
@@ -52,28 +59,27 @@ const Dashboard = () => {
 
   useEffect(() => {
     const handleQRData = async () => {
-    let queryData = router.query.data;
-    // This ensures queryData is a string
-    if (Array.isArray(queryData)) {
-      queryData = queryData[0];
-    }
-    
-    if (queryData) {
-      try {
-        const decodedData = decodeURIComponent(queryData);
-        const qrData = JSON.parse(decodedData);
-
-        if (qrData.action === "contribute" && qrData.eventId) {
-          console.log("Event ID from QR:", qrData.eventId);
-          setSelectedEventId(qrData.eventId);
-          setQrSend (qrData);
-        }
-      } catch (error) {
-        console.error("Error parsing QR data:", error);
+      let queryData = router.query.data;
+      // This ensures queryData is a string
+      if (Array.isArray(queryData)) {
+        queryData = queryData[0];
       }
-    }
-    
-  }
+
+      if (queryData) {
+        try {
+          const decodedData = decodeURIComponent(queryData);
+          const qrData = JSON.parse(decodedData);
+
+          if (qrData.action === "contribute" && qrData.eventId) {
+            console.log("Event ID from QR:", qrData.eventId);
+            setSelectedEventId(qrData.eventId);
+            setQrSend(qrData);
+          }
+        } catch (error) {
+          console.error("Error parsing QR data:", error);
+        }
+      }
+    };
 
     if (router.isReady) {
       handleQRData();
@@ -88,8 +94,14 @@ const Dashboard = () => {
     <div className={styles.dashboard}>
       <Sidebar />
       <main className={styles.mainContent}>
-        {selectedEventId ? (
-          <EventDetail eventId={selectedEventId} qrCode={qrSend } currentWallet={currentWallet} />
+        {showCommunityDashboard ? (
+          <CommunityDashboard communityWallet={selectedCommunityId} />
+        ) : selectedEventId ? (
+          <EventDetail
+            eventId={selectedEventId}
+            qrCode={qrSend}
+            currentWallet={currentWallet}
+          />
         ) : (
           <>
             <div className={styles.headerWithButton}>
@@ -105,14 +117,17 @@ const Dashboard = () => {
                     <a onClick={() => setShowCreateEventModal(true)}>Event</a>
                     <Link href="/create-task">Task</Link>
                     <a onClick={openCommunityModal}>Community</a>
-                    
                   </div>
                 )}
               </div>
             </div>
-            <CommunityModal isOpen={isCommunityModalOpen} onClose={closeCommunityModal} />
+            <CommunityModal
+              isOpen={isCommunityModalOpen}
+              onClose={closeCommunityModal}
+              onOpenCommunityDashboard={openCommunityDashboard}
+            />
             <h2>Events</h2>
-            <EventsGrid events={events}  onEventSelect={handleEventSelect} />
+            <EventsGrid events={events} onEventSelect={handleEventSelect} />
             <h2>Tasks</h2>
             <h2>Communities</h2>
             {showCreateEventModal && (
@@ -121,9 +136,9 @@ const Dashboard = () => {
           </>
         )}
       </main>
-      
     </div>
   );
+
 };
 
 export default Dashboard;
