@@ -1,0 +1,38 @@
+/* styles/ContributorsTable.module.css */
+
+.contributorsTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top:20px;
+}
+
+.contributorsTable th, .contributorsTable td {
+  padding: 10px; /* Adjust padding for gaps */
+  text-align: left; /* Adjusted for the wallet column */
+}
+
+.contributorsTable th.avatar, .contributorsTable td.avatar{
+  text-align: left; /* Centering avatar images */
+  width: 5%; /* Adjust the width as needed */
+}
+.contributorsTable th.wallet, .contributorsTable td.wallet {
+  width: 5%; /* Adjust the width as needed */
+  padding-right :100px;
+  
+}
+
+.contributorsTable th.measurement, .contributorsTable td.measurement {
+  text-align: left;
+  width: 90%;
+}
+.contributorsTable th.unit, .contributorsTable td.unit {
+  text-align: left;
+  width: 3%; /* Adjust the width as needed */
+}
+
+
+.contributorsTable .avatarImg {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%; /* Makes the avatar circular */
+}

@@ -15,7 +15,7 @@ const Sidebar = () => {
   const router = useRouter();
   const address = useAddress();
   const connected = !!address;
-  
+
   const isActive = (path) => {
     return router.pathname === path ? styles.active : "";
   };
@@ -28,28 +28,41 @@ const Sidebar = () => {
         </div>
       </Link>
       <nav className={styles.nav}>
-        <Link href="/" className={`${styles.navItem} ${isActive("/events")}`}>
-          <FontAwesomeIcon icon={faCalendarDays} /> Events
-        </Link>
-        <Link
-          href="/"
-          className={`${styles.navItem} ${isActive("/task-boards")}`}
-        >
-          <FontAwesomeIcon icon={faTasks} /> Task Boards
-        </Link>
-        <Link
-          href="/"
-          className={`${styles.navItem} ${isActive("/communities")}`}
-        >
-          <FontAwesomeIcon icon={faUsers} /> Communities
-        </Link>
-        <Link href="/" className={`${styles.navItem} ${isActive("/profile")}`}>
-          <FontAwesomeIcon icon={faUser} /> Profile
-        </Link>
+        <div className={styles.iconsContainer}>
+          <FontAwesomeIcon icon={faCalendarDays} className={styles.faIcons} />
+          <FontAwesomeIcon icon={faTasks} className={styles.faIcons}/>
+          <FontAwesomeIcon icon={faUsers} className={styles.faIcons} />
+          <FontAwesomeIcon icon={faUser}  className={styles.faIcons}/>
+        </div>
+        <div className={styles.linksContainer}>
+          <Link href="/" className={`${styles.navItem} ${isActive("/events")}`}>
+            Events
+          </Link>
+          <Link
+            href="/"
+            className={`${styles.navItem} ${isActive("/task-boards")}`}
+          >
+            Task Boards
+          </Link>
+          <Link
+            href="/"
+            className={`${styles.navItem} ${isActive("/communities")}`}
+          >
+            Communities
+          </Link>
+          <Link
+            href="/"
+            className={`${styles.navItem} ${isActive("/profile")}`}
+          >
+            Profile
+          </Link>
+        </div>
+        
       </nav>
-      {connected && (
-      <ConnectWallet />
-      )}
+      
+      <div className={styles.connectWalletContainer}>
+      {connected && <ConnectWallet />}
+      </div>
     </aside>
   );
 };

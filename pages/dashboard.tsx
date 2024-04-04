@@ -1,29 +1,30 @@
 // pages/dashboard.tsx
 import { useEffect, useState } from "react";
-import { useAddress, useSigner } from "@thirdweb-dev/react";
+import { useAddress } from "@thirdweb-dev/react";
 import Sidebar from "../components/Sidebar";
 import EventsGrid from "../components/EventsGrid";
-import { getMockCommunities, getMockTasks } from "../utils/mockData";
 import styles from "../styles/Dashboard.module.css"; // Make sure to update/create this CSS file
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import Link from "next/link";
 import CreateEventModal from "../components/CreateEventModal";
 import EventDetail from "../components/EventDetail";
-import RightSidebar from "../components/RightSidebar";
 import { useRouter } from "next/router";
-import { QRDetection } from "../utils/QRDetection";
+import CommunityModal from '../components/CommunityModal';
 
 const Dashboard = () => {
   const currentWallet = useAddress();
   const [events, setEvents] = useState<Event[]>([]);
-  const mockCommunities = getMockCommunities();
-  const mockTasks = getMockTasks();
   const [showDropdown, setShowDropdown] = useState(false);
   const [showCreateEventModal, setShowCreateEventModal] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState("");
   const router = useRouter();
   const [qrSend, setQrSend] = useState(null);
+  const [isCommunityModalOpen, setIsCommunityModalOpen] = useState(false);
+
+  const openCommunityModal = () => setIsCommunityModalOpen(true);
+  const closeCommunityModal = () => setIsCommunityModalOpen(false);
+
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -83,30 +84,6 @@ const Dashboard = () => {
     setSelectedEventId(eventId);
   };
 
-  /*useEffect(() => {
-    let queryData = router.query.data;
-    if (Array.isArray(queryData)) {
-      queryData = queryData[0];
-    }
-    console.log("queryData1 : ", queryData)
-    
-    if (queryData) {
-      try {
-        const decodedData = decodeURIComponent(queryData);
-        const qrData = JSON.parse(decodedData);
-
-        if (qrData.action === "contribute" && qrData.eventId) {
-          console.log("Event ID from QR:", qrData.eventId);
-          setSelectedEventId(qrData.eventId);
-        }
-      } catch (error) {
-        console.error("Error parsing QR data:", error);
-      }
-    }
-  }, [router.query]);
-
-*/
-
   return (
     <div className={styles.dashboard}>
       <Sidebar />
@@ -127,11 +104,13 @@ const Dashboard = () => {
                   <div className={styles.dropdownContent}>
                     <a onClick={() => setShowCreateEventModal(true)}>Event</a>
                     <Link href="/create-task">Task</Link>
-                    <Link href="/create-community">Community</Link>
+                    <a onClick={openCommunityModal}>Community</a>
+                    
                   </div>
                 )}
               </div>
             </div>
+            <CommunityModal isOpen={isCommunityModalOpen} onClose={closeCommunityModal} />
             <h2>Events</h2>
             <EventsGrid events={events}  onEventSelect={handleEventSelect} />
             <h2>Tasks</h2>

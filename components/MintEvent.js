@@ -6,7 +6,7 @@ import { ethers } from "ethers";
 import {
   HypercertClient,
   formatHypercertData,
-  TransferRestrictions,
+  TransferRestrictions
 } from "@hypercerts-org/sdk";
 import { optimism } from "viem/chains";
 import { createWalletClient, custom } from "viem";
@@ -107,7 +107,7 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
       }
 
       const restrictions = TransferRestrictions.FromCreatorOnly;
-console.log ("event : ", event);
+      console.log("event : ", event);
       // Retrieve allowlist from event data
       const allowlist = event.allowListed.map((entry) => ({
         address: entry.wallet,
@@ -124,12 +124,18 @@ console.log ("event : ", event);
       // Generate Merkle tree
       const tree = generateMerkleTree(allowlist);
       console.log("tree : ", tree);
-      // const root = tree.getHexRoot();
+      const root = tree.getHexRoot();
 
-     /* const testAllowList = [
-        { address: '0x62B69abC7Aad7623F33ac8820893A37218bffce2', units: BigInt(10) },
-        { address: '0x5770b2648B0b9b48E82Fb2A5670e07691Ca77f08', units: BigInt(20) }
-      ];*/
+      const testAllowList = [
+        {
+          address: "0x62B69abC7Aad7623F33ac8820893A37218bffce2",
+          units: BigInt(10),
+        },
+        {
+          address: "0x5770b2648B0b9b48E82Fb2A5670e07691Ca77f08",
+          units: BigInt(20),
+        },
+      ];
 
       const client = new HypercertClient({
         chain: { id: 10 },
@@ -138,10 +144,10 @@ console.log ("event : ", event);
       });
 
       console.log(Array.isArray(allowlist), allowlist);
-      
-      // Mint the hypercert with the allowlist (root) (pseudo code)
+
+      // Mint the hypercert with the allowlist 
       const txHash = await client.createAllowlist({
-        allowList : tree,
+        allowList: allowlist,
         metaData: metadata,
         totalUnits: totalUnits,
         transferRestriction: restrictions,
@@ -151,7 +157,7 @@ console.log ("event : ", event);
       allowlist.forEach(async (item) => {
         const proof = getMerkleProof(tree, item.address);
         console.log("Proof:", proof);
-        // Update your Event model to include the proof for the address
+        
         try {
           const response = await fetch(`/api/events/modifyDB/${eventId}`, {
             method: "POST",
@@ -170,6 +176,7 @@ console.log ("event : ", event);
           } else {
             console.error("Failed to add contribution:", data.message);
           }
+          
         } catch (error) {
           console.error("Failed to submit contribution:", error);
         }

@@ -1,6 +1,6 @@
 /* Sidebar.module.css */
 .sidebar {
-  width: 280px;
+  width: 250px;
   display: flex;
   flex-direction: column;
   align-items: start;
@@ -19,11 +19,22 @@
   -webkit-text-fill-color: transparent;
   font-size: 2em;
   font-weight: bold;
-  margin-left: 20px; /* Align with menu items */
+  margin-left: 10px; /* Align with menu items */
 }
 
 .nav {
   width: 100%;
+  display: flex;
+  flex-direction: row;
+  vertical-align: top;
+}
+
+.iconsContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.linksContainer {
   display: flex;
   flex-direction: column;
 }
@@ -31,13 +42,25 @@
 .navItem {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 1.2em;
-  font-weight: bold;
+  font-size: 1em;
+  
   color: #333;
-  padding: 10px 20px;
+  padding: 10px;
   transition: background-color 0.3s;
   text-decoration: none;
+  justify-content: start; /* Ensures content is aligned to the left */
+}
+
+/* Adjust FontAwesome icons to ensure they align left with the text */
+.faIcons {
+  display: flex;
+  align-items: center;
+  color: #333;
+  font-size : 20px;
+  padding: 10px;
+  transition: background-color 0.3s;
+  text-decoration: none;
+  justify-content: start; /* Ensures a little gap between icon and text */
 }
 
 .navItem:hover, .navItem.active {
@@ -49,10 +72,11 @@
   color: #004d40;
 }
 
-/* Include FontAwesome icon sizes if needed */
-.fa-icons {
-  font-size: 20px;
+.connectWalletContainer {
+  margin-left : 10px;
 }
+
+
 
 /* Responsive adjustments */
 @media (max-width: 768px) {

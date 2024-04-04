@@ -210,14 +210,17 @@
 .dashboard {
   display: flex;
   height: 100vh;
+  background-color : #fafafa;
+  vertical-align : top;
 }
 
 .mainContent {
   flex-grow: 1;
-  padding: 20px;
+  margin-left: 3%;
   overflow-y: auto;
   background-color : #fafafa;
 overflow : visible;
+  max-width:50%;
 }
 
 .headerWithButton {

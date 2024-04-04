@@ -15,6 +15,8 @@ import Link from "next/link";
 import AddContributionModal from "./AddContributionModal";
 import { useSigner, useAddress } from "@thirdweb-dev/react";
 import MintEventButton from "../components/MintEvent";
+import ContributorsTable from "../components/ContributorsTable";
+
 
 const EventDetail = ({ eventId, qrCode, currentWallet }) => {
   const [event, setEvent] = useState(null);
@@ -171,7 +173,7 @@ const EventDetail = ({ eventId, qrCode, currentWallet }) => {
       {showLoginModal && <LoginModal />}
       <div className={styles.contributorsSection}>
         <span className={styles.contributorsSectionHeader}>Contributors</span>
-        {/* List of contributors */}
+        <ContributorsTable contributors={event.allowListed} creatorWallet="creatorWalletAddress" />
       </div>
     </div>
   );

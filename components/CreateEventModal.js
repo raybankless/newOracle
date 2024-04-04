@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+  import React, { useState } from 'react';
 import styles from '../styles/CreateEventModal.module.css';
 import { useAddress } from "@thirdweb-dev/react";
 // /components/CreateEventModal.js - Modal component with form for event creation
