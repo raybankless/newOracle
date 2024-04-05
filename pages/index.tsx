@@ -27,7 +27,7 @@ const Home: NextPage = () => {
     <div className={styles.container}>
       <div className={styles.midContainer}>
       <div className={styles.leftPanel}>
-        <h1 className={styles.gradientText0}>GoodOracle</h1>
+        <span className={styles.gradientText0}>GoodOracle</span>
         <span className={styles.subtitle}>Public Good NFTs & Retroactive Funding</span>
         <img className={styles.placeholderImage} src="https://placehold.co/500x300/aed6af/586558?text=GoodOracle"></img>
       </div>

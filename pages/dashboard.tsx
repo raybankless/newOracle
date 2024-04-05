@@ -38,6 +38,15 @@ const Dashboard = () => {
     setIsCommunityModalOpen(false);
   };
 
+  const handleCommunitySelect = (communityId: string) => {
+    setSelectedCommunityId(communityId);
+    setShowCommunityDashboard(true); // Assuming you have a state to toggle the community dashboard visibility
+  };
+
+  interface EthereumError extends Error {
+    code?: number;
+  }
+
   async function switchToOptimism() {
     if (window.ethereum) {
       try {
@@ -47,21 +56,24 @@ const Dashboard = () => {
           params: [{ chainId: "0xa" }], // 0xa is the chain ID for Optimism Mainnet
         });
       } catch (switchError) {
-        // This error code indicates that the chain has not been added to MetaMask
-        if (switchError.code === 4902) {
+        // This error code indicates that the chain has not been added to MetaMask.
+        // assert the type of switchError to be EthereumError
+        const error = switchError as EthereumError;
+        if (error.code === 4902) {
           try {
-            // Request to add the Optimism network to MetaMask
+            // Request to add the Optimism network to MetaMask.
             await window.ethereum.request({
               method: "wallet_addEthereumChain",
               params: [
                 {
                   chainId: "0xa",
                   rpcUrl: "https://mainnet.optimism.io",
-                  // Additional parameters like the chain name, symbol, and block explorer can be added here
+                  // Additional parameters like the chain name, symbol, and block explorer can be added here.
                 },
               ],
             });
           } catch (addError) {
+            // You can assert addError type similarly if needed
             console.error("Error adding Optimism network:", addError);
           }
         }
@@ -71,7 +83,7 @@ const Dashboard = () => {
       console.log("MetaMask is not installed!");
     }
   }
-  
+
   useEffect(() => {
     const fetchEvents = async () => {
       if (currentWallet) {
@@ -102,8 +114,9 @@ const Dashboard = () => {
             await provider.send("eth_accounts", []);
             const tempAddress = await signer.getAddress();
 
-            const response = await fetch(`/api/communities/getByOwner?ownerWallet=${tempAddress}`);
-
+            const response = await fetch(
+              `/api/communities/getByOwner?ownerWallet=${tempAddress}`,
+            );
 
             const { data: communities, success } = await response.json();
             if (success) {
@@ -112,7 +125,6 @@ const Dashboard = () => {
             } else {
               console.error("No communities found or an error occurred");
             }
-            
           }
         } catch (error) {
           console.error("Failed to fetch events:", error);
@@ -159,7 +171,7 @@ const Dashboard = () => {
     <div className={styles.dashboard}>
       <Sidebar />
       <main className={styles.mainContent}>
-        {showCommunityDashboard ? (
+        {showCommunityDashboard && selectedCommunityId ? (
           <CommunityDashboard communityWallet={selectedCommunityId} />
         ) : selectedEventId ? (
           <EventDetail
@@ -194,7 +206,10 @@ const Dashboard = () => {
             <h2>Events</h2>
             <EventsGrid events={events} onEventSelect={handleEventSelect} />
             <h2>Communities</h2>
-            <CommunitiesGrid communities={communities} />
+            <CommunitiesGrid
+              communities={communities}
+              onCommunitySelect={handleCommunitySelect}
+            />
             <h2>Tasks</h2>
             {showCreateEventModal && (
               <CreateEventModal setShowModal={setShowCreateEventModal} />

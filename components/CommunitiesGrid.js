@@ -1,15 +1,14 @@
-import React from "react";
-import styles from "../styles/CommunitiesGrid.module.css"; // Ensure you have this CSS file
-
-const CommunitiesGrid = ({ communities }) => {
+// components/CommunitiesGrid.js
+import styles from '../styles/CommunitiesGrid.module.css';
+const CommunitiesGrid = ({ communities, onCommunitySelect }) => {
   return (
     <div className={styles.communitiesGrid}>
       {communities.map((community) => (
-        <div key={community._id} className={styles.communityCard}>
+        <div key={community._id} className={styles.communityCard} onClick={() => onCommunitySelect(community.safeWallet)}>
           <img src={community.image || "defaultCommunityImage.jpg"} alt={community.name} className={styles.communityImage} />
           <div className={styles.communityInfo}>
             <span className={styles.communityName}>{community.name}</span>
-            {/* You can add more details you want to show for each community */}
+            {/* Additional community info here */}
           </div>
         </div>
       ))}
