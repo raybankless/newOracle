@@ -12,6 +12,8 @@ import EventDetail from "../components/EventDetail";
 import { useRouter } from "next/router";
 import CommunityModal from "../components/CommunityModal";
 import CommunityDashboard from "../components/CommunityDashboard";
+import CommunitiesGrid from "../components/CommunitiesGrid";
+import { ethers } from "ethers";
 
 const Dashboard = () => {
   const currentWallet = useAddress();
@@ -24,6 +26,8 @@ const Dashboard = () => {
   const [isCommunityModalOpen, setIsCommunityModalOpen] = useState(false);
   const [selectedCommunityId, setSelectedCommunityId] = useState("");
   const [showCommunityDashboard, setShowCommunityDashboard] = useState(false);
+  const [communities, setCommunities] = useState([]);
+  const [address, setAddress] = useState("");
 
   const openCommunityModal = () => setIsCommunityModalOpen(true);
   const closeCommunityModal = () => setIsCommunityModalOpen(false);
@@ -33,6 +37,41 @@ const Dashboard = () => {
     setShowCommunityDashboard(true);
     setIsCommunityModalOpen(false);
   };
+
+  async function switchToOptimism() {
+    if (window.ethereum) {
+      try {
+        // Request to switch to the Optimism network (Mainnet)
+        await window.ethereum.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: "0xa" }], // 0xa is the chain ID for Optimism Mainnet
+        });
+      } catch (switchError) {
+        // This error code indicates that the chain has not been added to MetaMask
+        if (switchError.code === 4902) {
+          try {
+            // Request to add the Optimism network to MetaMask
+            await window.ethereum.request({
+              method: "wallet_addEthereumChain",
+              params: [
+                {
+                  chainId: "0xa",
+                  rpcUrl: "https://mainnet.optimism.io",
+                  // Additional parameters like the chain name, symbol, and block explorer can be added here
+                },
+              ],
+            });
+          } catch (addError) {
+            console.error("Error adding Optimism network:", addError);
+          }
+        }
+        console.error("Error switching to Optimism network:", switchError);
+      }
+    } else {
+      console.log("MetaMask is not installed!");
+    }
+  }
+  
   useEffect(() => {
     const fetchEvents = async () => {
       if (currentWallet) {
@@ -48,6 +87,32 @@ const Dashboard = () => {
             );
 
             setEvents(sortedEvents);
+
+            if (!window.ethereum) {
+              console.log("MetaMask is not installed!");
+              return;
+            }
+
+            await switchToOptimism();
+
+            await window.ethereum.request({ method: "eth_requestAccounts" }); // Request user to connect their MetaMask
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const signer = provider.getSigner();
+            console.log("Signer:", signer);
+            await provider.send("eth_accounts", []);
+            const tempAddress = await signer.getAddress();
+
+            const response = await fetch(`/api/communities/getByOwner?ownerWallet=${tempAddress}`);
+
+
+            const { data: communities, success } = await response.json();
+            if (success) {
+              console.log("communityData : ", communities);
+              setCommunities(communities);
+            } else {
+              console.error("No communities found or an error occurred");
+            }
+            
           }
         } catch (error) {
           console.error("Failed to fetch events:", error);
@@ -128,8 +193,9 @@ const Dashboard = () => {
             />
             <h2>Events</h2>
             <EventsGrid events={events} onEventSelect={handleEventSelect} />
-            <h2>Tasks</h2>
             <h2>Communities</h2>
+            <CommunitiesGrid communities={communities} />
+            <h2>Tasks</h2>
             {showCreateEventModal && (
               <CreateEventModal setShowModal={setShowCreateEventModal} />
             )}
@@ -138,7 +204,6 @@ const Dashboard = () => {
       </main>
     </div>
   );
-
 };
 
 export default Dashboard;

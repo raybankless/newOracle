@@ -11,12 +11,14 @@
   padding: 10px;
   border-radius: 8px;
   text-align: left;
+  cursor : pointer;
 }
 
 .eventImage {
   width: 100%;
   height: 160px;
   border-radius: 8px;
+
 }
 
 .eventInfo {

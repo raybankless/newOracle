@@ -1,5 +1,5 @@
 import type { AppProps } from "next/app";
-import { ThirdwebProvider, embeddedWallet, smartWallet, localWallet } from "@thirdweb-dev/react";
+import { ThirdwebProvider, embeddedWallet} from "@thirdweb-dev/react";
 import {Optimism} from "@thirdweb-dev/chains";
 import "../styles/globals.css";
 

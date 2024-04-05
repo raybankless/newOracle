@@ -137,6 +137,7 @@ const CommunityModal = ({ isOpen, onClose, onOpenCommunityDashboard }) => {
             <button onClick={onClose} className={styles.closeButton}>&times;</button>
           </div>
           <div className={styles.modalBody}>
+            <span className={styles.explanation}>The signers of the Safe will be community admins.</span>
             <table className={styles.safeWalletsTable}>
 
               <tbody>
@@ -157,16 +158,22 @@ const CommunityModal = ({ isOpen, onClose, onOpenCommunityDashboard }) => {
                     <tr className={styles.detailsRow} id={`details-${safeWallet}`}>
                       <td colSpan="3" className={styles.detailsCell}>
                         <div className={styles.detailsCellInner} style={{ overflow: "hidden", transition: "max-height 0.5s ease" }}>
-                          {/* Display each owner with an avatar */}
+                          <span className={styles.signer}>Signers:</span>
                           {owners.map((owner, index) => (
                             <p key={index}>
                               <img src={`https://source.boringavatars.com/beam/20/${owner}?colors=E63946,F4A261,2A9D8F,264653,F4A261`} alt="Owner Avatar" className={styles.ownerAvatar} />
                               {`${owner.slice(0, 10)}.......${owner.slice(-10)}`}
                             </p>
                           ))}
-                          <p>Threshold: {threshold} / {owners.length}</p>
-                          <button onClick={() => createCommunity(safeWallet)} className ={styles.loadButton} >Load Community</button>
+                          <div className={styles.threshold}>
+                            <span className={styles.thresholdText} >Threshold:</span>
+                            <span className={styles.thresholdValue}>{threshold} of {owners.length}</span>
+                          </div>
+                          
                         </div>
+                        <div className={styles.loadButtonConatiner}>
+                          <button onClick={() => createCommunity(safeWallet)} className ={styles.loadButton} >Load Community</button>
+                            </div>
                       </td>
                     </tr>
                     )}
