@@ -4,11 +4,12 @@ import styles from '../styles/CommunityDashboard.module.css';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faEdit } from "@fortawesome/free-solid-svg-icons";
 import EditCommunityModal from './EditCommunityModal';
+import CreateEventModal from "../components/CreateEventModal";
 
 const CommunityDashboard = ({ communityWallet }) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [community, setCommunity] = useState(null);
-
+  const [showCreateEventModal, setShowCreateEventModal] = useState(false);
   // Fetch community data from backend
   const fetchCommunity = async () => {
     console.log("Fetching community for wallet:", communityWallet);
@@ -23,6 +24,34 @@ const CommunityDashboard = ({ communityWallet }) => {
       }
     } catch (error) {
       console.error("Fetching community failed:", error);
+    }
+  };
+
+  const handleEventCreated = async (eventId) => {
+    console.log("New event created with ID:", eventId);
+    // After receiving the eventId, call the API to update the event with the safeWallet
+    try {
+      console.log("Attempting to update event with safeWallet:", communityWallet)
+      await fetch(`/api/events/modifyDB/${eventId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "addCommunity", // Assuming this action is handled in your API
+          safeWallet: communityWallet,
+        }),
+      }).then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      }).then(data => {
+        console.log('Success 2:', data);
+      }).catch(error => {
+        console.error('Error:', error);
+      });
+      console.log(`Event ${eventId} associated with community ${communityWallet}`);
+    } catch (error) {
+      console.error("Failed to associate event with community:", error);
     }
   };
 
@@ -56,6 +85,10 @@ const CommunityDashboard = ({ communityWallet }) => {
     }
   };
 
+  const toggleCreateEventModal = () => {
+    setShowCreateEventModal(true);
+  };
+
   if (!community) {
     return <div>Loading...</div>;
   }
@@ -75,11 +108,18 @@ const CommunityDashboard = ({ communityWallet }) => {
       </div>
 
       <div className={styles.actions}>
-        <span className={styles.actionButton} onClick={() => console.log("Add Contributor Clicked")}>
-          <FontAwesomeIcon icon={faPlus} /> Add Contributor
+        <span className={styles.actionButton} onClick={toggleCreateEventModal}>
+          <FontAwesomeIcon icon={faPlus} /> Create Event
         </span>
+        {showCreateEventModal && (
+          <CreateEventModal setShowModal={setShowCreateEventModal} onEventCreated={handleEventCreated} />
+        )}
         <span className={styles.actionButton} onClick={handleEdit}>
           <FontAwesomeIcon icon={faEdit} /> Edit Community
+        </span>
+
+        <span className={styles.actionButton} onClick={handleEdit}>
+          <FontAwesomeIcon icon={faEdit} /> mock
         </span>
       </div>
 

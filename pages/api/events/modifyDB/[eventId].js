@@ -3,11 +3,14 @@ import dbConnect from "../../../../utils/dbConnect";
 import Event from "../../../../models/Event";
 
 export default async function handler(req, res) {
+  console.log("req 1 ", req.body);
+  console.log("req 2 ", req.query);
   const {
     query: { eventId },
     body: { action, ...updateData },
   } = req;
 
+  
   await dbConnect();
 
   if (req.method !== "POST") {
@@ -18,6 +21,7 @@ export default async function handler(req, res) {
   try {
     switch (action) {
       case "addContributor":
+        
         const addResult = await addContributor(eventId, req.body);
         if (!addResult.success) {
           return res.status(400).json(addResult);
@@ -38,12 +42,19 @@ export default async function handler(req, res) {
         }
         return res.status(200).json(txHashResult);
         break;
+      case "addCommunity": //adds a safeWallet (defining a community) to the event
+        const communityResult = await addCommunity(eventId, req.body);
+        console.log("community result : ", communityResult);
+        if (!communityResult.success) {
+          return res.status(400).json(communityResult);
+        }
+        return res.status(200).json(communityResult);
+        break;
       default:
         return res
           .status(400)
           .json({ success: false, message: "Invalid action specified" });
     }
-
   } catch (error) {
     res.status(400).json({ success: false, error: error.message });
   }
@@ -125,6 +136,24 @@ async function updateTxHash(eventId, { txHash }) {
   }
 }
 
-async function updateProof () {
+async function updateProof() {}
 
+async function addCommunity(eventId, { safeWallet }) {
+  try {
+    console.log("Attempting to add community with safeWallet:", safeWallet);
+    const updateResult = await Event.findByIdAndUpdate(
+      eventId,
+      { $push: { community: safeWallet } }, // Use $set if community is not an array
+      { new: true, runValidators: true }
+    );
+
+    if (!updateResult) {
+      return { success: false, message: "Event not found or update failed" };
+    } 
+
+    return { success: true, event: updateResult };
+  } catch (error) {
+    console.error("Error adding community:", error);
+    return { success: false, message: error.toString() };
+  }
 }

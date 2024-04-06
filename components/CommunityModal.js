@@ -127,6 +127,7 @@ const CommunityModal = ({ isOpen, onClose, onOpenCommunityDashboard }) => {
       }
     }
   };
+  
   if (!isOpen) return null;
 
     return (

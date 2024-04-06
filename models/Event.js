@@ -22,6 +22,7 @@ const eventSchema = new mongoose.Schema({
     type: String,
   }],
   txHash: String,
+  community : String,
 }, { timestamps: true });
 
 export default mongoose.models.Event || mongoose.model('Event', eventSchema);

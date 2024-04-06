@@ -2,7 +2,7 @@
 import styles from '../styles/CreateEventModal.module.css';
 import { useAddress } from "@thirdweb-dev/react";
 // /components/CreateEventModal.js - Modal component with form for event creation
-const CreateEventModal = ({setShowModal}) => {
+const CreateEventModal = ({setShowModal, onEventCreated}) => {
   const [eventName, setEventName] = useState("");
   const [headerImage, setHeaderImage] = useState("");
   const [eventDescription, setEventDescription] = useState("");
@@ -50,7 +50,8 @@ const CreateEventModal = ({setShowModal}) => {
         setEventLocation("");
         setHeaderImage("");
         setAdditionalInfoLink ("");
-        console.log("Event created:", result.event);
+        console.log("Event created:", result.event._id);
+        onEventCreated(result.event._id);
         setShowModal(false); // Close the modal
       } else {
         // Handle error - give user feedback
