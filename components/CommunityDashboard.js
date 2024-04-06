@@ -5,11 +5,14 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faEdit } from "@fortawesome/free-solid-svg-icons";
 import EditCommunityModal from './EditCommunityModal';
 import CreateEventModal from "../components/CreateEventModal";
+import EventsGrid from "../components/EventsGrid";
 
 const CommunityDashboard = ({ communityWallet }) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [community, setCommunity] = useState(null);
   const [showCreateEventModal, setShowCreateEventModal] = useState(false);
+   const [events, setEvents] = useState([]);
+  const [comWalletLoaded, setComWalletLoaded] = useState(false);
   // Fetch community data from backend
   const fetchCommunity = async () => {
     console.log("Fetching community for wallet:", communityWallet);
@@ -19,6 +22,19 @@ const CommunityDashboard = ({ communityWallet }) => {
       if (success) {
         setCommunity(data);
         console.log("Fetched community data:", data);
+        
+        // Fetch events associated with the community
+        try {
+          const eventsResponse = await fetch(`/api/events/byCommunity?communityWallet=${communityWallet}`);
+          const eventsData = await eventsResponse.json();
+          if (eventsData.success) {
+            setEvents(eventsData.events);
+          } else {
+            console.error("Failed to fetch events for community wallet:", communityWallet);
+          }
+        } catch (error) {
+          console.error("Fetching community or events failed:", error);
+        }
       } else {
         console.error("Community not found for wallet:", communityWallet);
       }
@@ -56,7 +72,10 @@ const CommunityDashboard = ({ communityWallet }) => {
   };
 
   useEffect(() => {
+    if (!comWalletLoaded){
     fetchCommunity();
+    setComWalletLoaded(true);
+    }
   }, [communityWallet]);
 
   const handleEdit = () => {
@@ -125,9 +144,7 @@ const CommunityDashboard = ({ communityWallet }) => {
 
       <div className={styles.eventsList}>
         <h3>Community Events</h3>
-        {/* Placeholder div for community events listing */}
-        <div className={styles.eventItem}>Event 1</div>
-        <div className={styles.eventItem}>Event 2</div>
+        <EventsGrid events={events} onEventSelect={() => {}} />
       </div>
 
       {isEditModalOpen && (
