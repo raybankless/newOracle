@@ -1,6 +1,9 @@
 // components/MintEvent.js
 
-import { useAddress } from "@thirdweb-dev/react";
+import { useAddress, useWallet, useSigner } from "@thirdweb-dev/react";
+import { useActiveAccount, useConnectedWallets, useActiveWallet } from "thirdweb/react";
+import { createThirdwebClient } from "thirdweb";
+import {Optimism} from "@thirdweb-dev/chains";
 import styles from "../styles/MintEvent.module.css";
 import { ethers } from "ethers";
 import {
@@ -10,6 +13,7 @@ import {
 } from "@hypercerts-org/sdk";
 import { optimism } from "viem/chains";
 import { createWalletClient, custom } from "viem";
+import { viemAdapter } from "thirdweb/adapters/viem";
 import { useState } from "react";
 import { generateMerkleTree, getMerkleProof } from "../utils/merkleTree";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -19,40 +23,13 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
   const currentWallet = useAddress();
   const [account, setAccount] = useState(null);
   const [address, setAddress] = useState(null);
+  const smartSigner = useSigner();
 
-  async function switchToOptimism() {
-    if (window.ethereum) {
-      try {
-        // Request to switch to the Optimism network (Mainnet)
-        await window.ethereum.request({
-          method: "wallet_switchEthereumChain",
-          params: [{ chainId: "0xa" }], // 0xa is the chain ID for Optimism Mainnet
-        });
-      } catch (switchError) {
-        // This error code indicates that the chain has not been added to MetaMask
-        if (switchError.code === 4902) {
-          try {
-            // Request to add the Optimism network to MetaMask
-            await window.ethereum.request({
-              method: "wallet_addEthereumChain",
-              params: [
-                {
-                  chainId: "0xa",
-                  rpcUrl: "https://mainnet.optimism.io",
-                  // Additional parameters like the chain name, symbol, and block explorer can be added here
-                },
-              ],
-            });
-          } catch (addError) {
-            console.error("Error adding Optimism network:", addError);
-          }
-        }
-        console.error("Error switching to Optimism network:", switchError);
-      }
-    } else {
-      console.log("MetaMask is not installed!");
-    }
-  }
+  const twClient = createThirdwebClient({
+    clientId: "22f2a1f2653b1f091455a59951c2ecca",
+  });
+
+
 
   const mintEvent = async () => {
     if (!window.ethereum) {
@@ -60,17 +37,16 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
       return;
     }
 
-    await switchToOptimism();
+ 
 
-    await window.ethereum.request({ method: "eth_requestAccounts" }); // Request user to connect their MetaMask
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const signer = provider.getSigner();
-    await provider.send("eth_accounts", []);
-    const tempAccount = await ethereum.request({ method: "eth_accounts" });
-    const tempAddress = await signer.getAddress();
-    setAccount(tempAccount);
-    setAddress(tempAddress);
+    const viemClientWallet = viemAdapter.walletClient.toViem({
+      client : twClient,
+      chain : 10,
+      account : smartSigner,
+    });
 
+    console.log("viemClientWallet", viemClientWallet);
+    
     const wallet = createWalletClient({
       account: address,
       chain: optimism,
@@ -107,7 +83,6 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
       }
 
       const restrictions = TransferRestrictions.FromCreatorOnly;
-      console.log("event : ", event);
       // Retrieve allowlist from event data
       const allowlist = event.allowListed.map((entry) => ({
         address: entry.wallet,
@@ -123,7 +98,7 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
 
       // Generate Merkle tree
       const tree = generateMerkleTree(allowlist);
-      console.log("tree : ", tree);
+      //console.log("tree : ", tree);
       const root = tree.getHexRoot();
 
       const testAllowList = [
@@ -138,20 +113,25 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
       ];
 
       const client = new HypercertClient({
-        chain: { id: 10 },
-        walletClient: wallet,
+        chain: {id :10},
+        walletClient: viemClientWallet,
         easContractAddress: currentWallet,
       });
 
       console.log(Array.isArray(allowlist), allowlist);
 
       // Mint the hypercert with the allowlist 
-      const txHash = await client.createAllowlist({
+     /* const txHash = await client.createAllowlist({
         allowList: allowlist,
         metaData: metadata,
         totalUnits: totalUnits,
         transferRestriction: restrictions,
-      });
+      });*/
+
+      // Mint the hypercert without the allowlist 
+      const units = BigInt(10);
+      const txHash = await client.mintClaim(metadata, units, restrictions);
+      
       console.log("txHash : ", txHash);
       // Store proofs in the database for each address
       allowlist.forEach(async (item) => {
@@ -182,7 +162,7 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
         }
       });
 
-      // const tx = await client.mintClaim(metadata, units, restrictions);
+      
 
       // Store the tx hash
       const response = await fetch(`/api/events/modifyDB/${event._id}`, {
@@ -218,3 +198,14 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
 };
 
 export default MintEventButton;
+
+
+/*
+import { defineChain } from "thirdweb";
+
+const myChain = defineChain(myChainId);
+import { polygon } from "thirdweb/chains";
+
+const myChain = polygon;
+https://portal.thirdweb.com/typescript/v5/chain
+*/

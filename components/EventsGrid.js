@@ -19,7 +19,10 @@ const EventsGrid = ({ events, onEventSelect }) => {
           </div>
         </div>
       ))}
+
     </div>
+     
+
   );
 };
 
