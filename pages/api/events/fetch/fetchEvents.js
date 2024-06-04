@@ -1,29 +1,30 @@
 // pages/api/events/fetch/fetchEvents.js
-import { ethers } from "ethers";
 import { HypercertClient } from "@hypercerts-org/sdk";
-import { optimism } from "viem/chains";
-import { createWalletClient, custom } from "viem";
+import { createThirdwebClient, useAddress, useSigner  } from "@thirdweb-dev/react";
+import { viemAdapter } from "thirdweb/adapters/viem";
 
 export async function fetchEvents(setEventsCallback) {
-  if (!window.ethereum) return;
 
-  await window.ethereum.request({ method: "eth_requestAccounts" });
-  const provider = new ethers.providers.Web3Provider(window.ethereum);
-  const accounts = await provider.listAccounts();
-  if (accounts.length === 0) return; // No accounts connected
-  const account = accounts[0]; // Use the first account
+  const currentWallet = useAddress();  
+  const smartSigner = useSigner();
 
-  const wallet = createWalletClient({
-    account: account,
-    chain: optimism,
-    transport: custom(window.ethereum),
+  
+  const twClient = createThirdwebClient({
+    clientId: "22f2a1f2653b1f091455a59z951c2ecca",
   });
-
+  
+  const viemClientWallet = viemAdapter.walletClient.toViem({
+    client : twClient,
+    chain : 10,
+    account : smartSigner,
+  });
   const client = new HypercertClient({
-    chain: { id: 10 },
-    walletClient: wallet,
-    easContractAddress: account,
+    chain: {id :10},
+    walletClient: viemClientWallet,
+    easContractAddress: currentWallet,
   });
+
+
 
   try {
     const ownedEvents = await client.indexer.claimsByOwner(account);

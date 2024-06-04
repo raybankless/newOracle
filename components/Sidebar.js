@@ -24,7 +24,7 @@ const Sidebar = () => {
     <aside className={styles.sidebar}>
       <Link href="/">
         <div className={styles.logo}>
-          <span className={styles.gradientText}>GoodOracle</span>
+          <span className={styles.gradientText}>ImpactOracle</span>
         </div>
       </Link>
       <nav className={styles.nav}>

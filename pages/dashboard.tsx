@@ -212,7 +212,7 @@ const Dashboard = () => {
             />
             <h2>Tasks</h2>
             {showCreateEventModal && (
-              <CreateEventModal setShowModal={setShowCreateEventModal} />
+              <CreateEventModal setShowModal={setShowCreateEventModal} onEventCreated ={handleEventSelect} />
             )}
           </>
         )}

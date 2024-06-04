@@ -29,7 +29,8 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
     clientId: "22f2a1f2653b1f091455a59951c2ecca",
   });
 
-
+  console.log("viem optimism : ", optimism);
+  console.log("thirdweb optimism : ", Optimism);
 
   const mintEvent = async () => {
     if (!window.ethereum) {

@@ -27,9 +27,9 @@ const Home: NextPage = () => {
     <div className={styles.container}>
       <div className={styles.midContainer}>
       <div className={styles.leftPanel}>
-        <span className={styles.gradientText0}>GoodOracle</span>
+        <span className={styles.gradientText0}>ImpactOracle</span>
         <span className={styles.subtitle}>Public Good NFTs & Retroactive Funding</span>
-        <img className={styles.placeholderImage} src="https://placehold.co/500x300/aed6af/586558?text=GoodOracle"></img>
+        <img className={styles.placeholderImage} src="https://placehold.co/500x300/aed6af/586558?text=ImpactOracle"></img>
       </div>
       <div className={styles.separator}></div>
       <div className={styles.rightPanel}>
