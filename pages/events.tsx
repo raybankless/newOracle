@@ -47,7 +47,7 @@ const Events: NextPage = () => {
                   <h2 className={styles.textBlack}>{event.name}</h2>
                   <p className={styles.textBlack}>{event.description}</p>
                   <p className={styles.textBlack}>{event.createdAt}</p>
-                  {/* Display other event details as needed */}
+                  {/* Display other event details as needed }
                 </div>
             </Link>
           ))}
