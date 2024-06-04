@@ -1,30 +1,30 @@
 // pages/api/events/fetch/fetchEvents.js
 import { HypercertClient } from "@hypercerts-org/sdk";
-import { createThirdwebClient, useAddress, useSigner  } from "@thirdweb-dev/react";
+import {
+  createThirdwebClient,
+  useAddress,
+  useSigner,
+} from "@thirdweb-dev/react";
 import { viemAdapter } from "thirdweb/adapters/viem";
 
-const currentWallet = useAddress();  
+const currentWallet = useAddress();
 const smartSigner = useSigner();
 
 export async function fetchEvents(setEventsCallback) {
-
-  
   const twClient = createThirdwebClient({
     clientId: "22f2a1f2653b1f091455a59z951c2ecca",
   });
-  
+//sign
   const viemClientWallet = viemAdapter.walletClient.toViem({
-    client : twClient,
-    chain : 10,
-    account : smartSigner,
+    client: twClient,
+    chain: 10,
+    account: smartSigner,
   });
   const client = new HypercertClient({
-    chain: {id :10},
+    chain: { id: 10 },
     walletClient: viemClientWallet,
     easContractAddress: currentWallet,
   });
-
-
 
   try {
     const ownedEvents = await client.indexer.claimsByOwner(account);
@@ -45,7 +45,7 @@ export async function fetchEvents(setEventsCallback) {
               metadata: metadata,
             };
           } else {
-          //  console.log(`Skipping event as it's not marked as a GoodOracle Event: ${metadata.description}`);
+            //  console.log(`Skipping event as it's not marked as a GoodOracle Event: ${metadata.description}`);
             return null;
           }
         } catch (error) {
