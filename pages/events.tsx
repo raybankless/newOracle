@@ -1,5 +1,5 @@
 // events.tsx - shows ll events of currentWallet.
-
+/*
 import { NextPage } from "next";
 import { useEffect, useState } from "react";
 import styles from "../styles/Events.module.css";
@@ -63,3 +63,4 @@ const Events: NextPage = () => {
 export default Events;
 
 
+*/
