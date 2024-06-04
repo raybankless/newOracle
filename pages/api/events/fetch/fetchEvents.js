@@ -3,10 +3,10 @@ import { HypercertClient } from "@hypercerts-org/sdk";
 import { createThirdwebClient, useAddress, useSigner  } from "@thirdweb-dev/react";
 import { viemAdapter } from "thirdweb/adapters/viem";
 
-export async function fetchEvents(setEventsCallback) {
+const currentWallet = useAddress();  
+const smartSigner = useSigner();
 
-  const currentWallet = useAddress();  
-  const smartSigner = useSigner();
+export async function fetchEvents(setEventsCallback) {
 
   
   const twClient = createThirdwebClient({
