@@ -6,14 +6,16 @@ import {
   useSigner,
 } from "@thirdweb-dev/react";
 import { viemAdapter } from "thirdweb/adapters/viem";
+import { useState } from 'react';
+
 
 function wallet () {
-  const currentWallet = useAddress();
+  const [currentWallet, setCurrentWallet] = useState(useAddress());
   return currentWallet;
 }
 
 function signer () {
-  const smartSigner = useSigner();
+  const [smartSigner, setSmartSigner] = useState(useSigner());
   return smartSigner;
 }
 
