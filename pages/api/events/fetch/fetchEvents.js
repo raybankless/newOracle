@@ -7,8 +7,17 @@ import {
 } from "@thirdweb-dev/react";
 import { viemAdapter } from "thirdweb/adapters/viem";
 
-const currentWallet = useAddress();
-const smartSigner = useSigner();
+function wallet () {
+  const currentWallet = useAddress();
+  return currentWallet;
+}
+
+function signer () {
+  const smartSigner = useSigner();
+  return smartSigner;
+}
+
+
 
 export async function fetchEvents(setEventsCallback) {
   const twClient = createThirdwebClient({
@@ -18,12 +27,12 @@ export async function fetchEvents(setEventsCallback) {
   const viemClientWallet = viemAdapter.walletClient.toViem({
     client: twClient,
     chain: 10,
-    account: smartSigner,
+    account: signer,
   });
   const client = new HypercertClient({
     chain: { id: 10 },
     walletClient: viemClientWallet,
-    easContractAddress: currentWallet,
+    easContractAddress: wallet,
   });
 
   try {
