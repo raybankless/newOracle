@@ -122,16 +122,17 @@ const MintEventButton = ({ event, onMintSuccess, onMintError }) => {
       console.log(Array.isArray(allowlist), allowlist);
 
       // Mint the hypercert with the allowlist 
-     /* const txHash = await client.createAllowlist({
+     const txHash = await client.createAllowlist({
         allowList: allowlist,
         metaData: metadata,
         totalUnits: totalUnits,
         transferRestriction: restrictions,
-      });*/
+      });
 
-      // Mint the hypercert without the allowlist 
+    /*  // Mint the hypercert without the allowlist 
       const units = BigInt(10);
       const txHash = await client.mintClaim(metadata, units, restrictions);
+      */
       
       console.log("txHash : ", txHash);
       // Store proofs in the database for each address
