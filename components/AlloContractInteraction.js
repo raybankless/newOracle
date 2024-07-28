@@ -7,6 +7,7 @@ const INFURA_ID = "6561b6462f824490b0bec934ada8dd65";
 
 const ABI = [
   "function getFeeDenominator() public pure returns (uint256)",
+  "function updatePercentFee(uint256 _percentFee) external",
   "function getPercentFee() external view returns (uint256)",
   "function getBaseFee() external view returns (uint256)",
   "function getTreasury() external view returns (address)",
@@ -16,6 +17,7 @@ const ABI = [
 const AlloContractInteraction = () => {
   const [contractInfo, setContractInfo] = useState(null);
   const [error, setError] = useState(null);
+  const [newPercentFee, setNewPercentFee] = useState("");
 
   useEffect(() => {
     const fetchContractInfo = async () => {
@@ -73,6 +75,32 @@ const AlloContractInteraction = () => {
   console.log("Current contractInfo:", contractInfo);
   console.log("Current error:", error);
 
+  const updatePercentFee = async () => {
+    try {
+      // You need to connect with a signer that has owner permissions
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      const signer = provider.getSigner();
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+
+      // Convert the percentage to the correct format (assuming 18 decimal places)
+      const percentFeeInWei = ethers.utils.parseUnits(newPercentFee, 18);
+
+      // Send the transaction
+      const tx = await contract.updatePercentFee(percentFeeInWei);
+      await tx.wait();
+
+      // Refresh the contract info after updating
+      fetchContractInfo();
+
+      console.log("Percentage fee updated successfully");
+    } catch (err) {
+      console.error("Error updating percentage fee:", err);
+      setError(err.message || "An error occurred while updating the percentage fee");
+    }
+  };
+
+
   if (error) {
     return <p>Error: {error}</p>;
   }
@@ -83,12 +111,22 @@ const AlloContractInteraction = () => {
 
   return (
     <div>
-      <h2>Allo Contract Information</h2>
-      <p>Fee Denominator: {contractInfo.feeDenominator}</p>
-      <p>Percent Fee: {contractInfo.percentFee}%</p>
-      <p>Base Fee: {contractInfo.baseFee} ETH</p>
-      <p>Treasury Address: {contractInfo.treasury}</p>
-      <p>Registry Address: {contractInfo.registry}</p>
+      <h2 style={{ color: 'black' }}>Allo Contract Information</h2>
+      <p style={{ color: 'black' }}>Fee Denominator: {contractInfo.feeDenominator}</p>
+      <p style={{ color: 'black' }}>Percent Fee: {contractInfo.percentFee}%</p>
+      <p style={{ color: 'black' }}>Base Fee: {contractInfo.baseFee} ETH</p>
+      <p style={{ color: 'black' }}>Treasury Address: {contractInfo.treasury}</p>
+      <p style={{ color: 'black' }}>Registry Address: {contractInfo.registry}</p>
+      <h3 style={{ color: 'black' }}>Update Percentage Fee</h3>
+      <input 
+        type="text" 
+        value={newPercentFee} 
+        onChange={(e) => setNewPercentFee(e.target.value)} 
+        placeholder="New Percentage Fee"
+      />
+      <button onClick={updatePercentFee}>Update Fee</button>
+
+      {error && <p>Error: {error}</p>}
     </div>
   );
 };
