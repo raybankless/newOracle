@@ -1,29 +1,9 @@
 import React, { useState, useEffect } from "react";
-import {
-  createPublicClient,
-  http,
-  createWalletClient,
-  custom,
-  encodeFunctionData,
-  parseAbi,
-} from "viem";
-import { optimism } from "viem/chains";
 import { Allo, Registry } from "@allo-team/allo-v2-sdk";
 
 const ALLO_ADDRESS = "0xe0871238de109E0Af23aF651786d8484c0b0d656";
-const ANCHOR_PROXY_ADDRESS = "0xAe127f1239E435B78f11a1f8421206483eA1c390";
 
-const alloABI = parseAbi([
-  "function updatePercentFee(uint256 _percentFee)",
-  "function getPercentFee() view returns (uint256)",
-]);
-
-const anchorABI = parseAbi([
-  "function hasRole(bytes32 role, address account) view returns (bool)",
-  "function OWNER_ROLE() view returns (bytes32)",
-]);
-
-const AlloAndAnchorInteraction = () => {
+const AlloTest = () => {
   const [userAddress, setUserAddress] = useState("");
   const [profileId, setProfileId] = useState("");
   const [isProfileOwner, setIsProfileOwner] = useState(false);
