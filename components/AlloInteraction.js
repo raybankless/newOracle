@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { createPublicClient, http, createWalletClient, custom, encodeFunctionData, parseAbi } from "viem";
+import {
+  createPublicClient,
+  http,
+  createWalletClient,
+  custom,
+  encodeFunctionData,
+  parseAbi,
+} from "viem";
 import { optimism } from "viem/chains";
 import { Allo, Registry } from "@allo-team/allo-v2-sdk";
 
@@ -7,7 +14,7 @@ const ALLO_ADDRESS = "0xe0871238de109E0Af23aF651786d8484c0b0d656";
 
 const alloABI = parseAbi([
   "function updatePercentFee(uint256 _percentFee)",
-  "function getPercentFee() view returns (uint256)"
+  "function getPercentFee() view returns (uint256)",
 ]);
 
 const AlloInteraction = () => {
@@ -19,7 +26,7 @@ const AlloInteraction = () => {
 
   const publicClient = createPublicClient({
     chain: optimism,
-    transport: http()
+    transport: http(),
   });
 
   const allo = new Allo({ chain: 10 });
@@ -30,10 +37,12 @@ const AlloInteraction = () => {
   }, []);
 
   const connectToMetaMask = async () => {
-    if (typeof window.ethereum !== 'undefined') {
+    if (typeof window.ethereum !== "undefined") {
       try {
         await switchToOptimism();
-        const [address] = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const [address] = await window.ethereum.request({
+          method: "eth_requestAccounts",
+        });
         setUserAddress(address);
         await fetchCurrentFee();
         await checkOwnership(address);
@@ -42,12 +51,49 @@ const AlloInteraction = () => {
         setStatus("Failed to connect to MetaMask. Please try again.");
       }
     } else {
-      setStatus("MetaMask is not installed. Please install it to use this feature.");
+      setStatus(
+        "MetaMask is not installed. Please install it to use this feature.",
+      );
     }
   };
 
   const switchToOptimism = async () => {
-    // ... (keep the existing switchToOptimism function)
+    if (typeof window.ethereum !== "undefined") {
+      try {
+        await window.ethereum.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: "0xa" }], // 0xa is the chain ID for Optimism Mainnet
+        });
+      } catch (switchError) {
+        // This error code indicates that the chain has not been added to MetaMask.
+        if (switchError.code === 4902) {
+          try {
+            await window.ethereum.request({
+              method: "wallet_addEthereumChain",
+              params: [
+                {
+                  chainId: "0xa",
+                  chainName: "Optimism Mainnet",
+                  nativeCurrency: {
+                    name: "Ether",
+                    symbol: "ETH",
+                    decimals: 18,
+                  },
+                  rpcUrls: ["https://mainnet.optimism.io"],
+                  blockExplorerUrls: ["https://optimistic.etherscan.io"],
+                },
+              ],
+            });
+          } catch (addError) {
+            console.error(
+              "Failed to add Optimism network to MetaMask:",
+              addError,
+            );
+          }
+        }
+        console.error("Failed to switch to Optimism network:", switchError);
+      }
+    }
   };
 
   const checkOwnership = async (address) => {
@@ -83,14 +129,14 @@ const AlloInteraction = () => {
     try {
       const walletClient = createWalletClient({
         chain: optimism,
-        transport: custom(window.ethereum)
+        transport: custom(window.ethereum),
       });
 
       const feePercentage = BigInt(parseFloat(newFee) * 1e12);
 
       const data = encodeFunctionData({
         abi: alloABI,
-        functionName: 'updatePercentFee',
+        functionName: "updatePercentFee",
         args: [feePercentage],
       });
 
@@ -130,7 +176,9 @@ const AlloInteraction = () => {
           onChange={(e) => setNewFee(e.target.value)}
           placeholder="New fee percentage"
         />
-        <button onClick={handleUpdateFee} disabled={!isOwner}>Update Fee</button>
+        <button onClick={handleUpdateFee} disabled={!isOwner}>
+          Update Fee
+        </button>
         {status && <p>{status}</p>}
       </div>
     </div>
