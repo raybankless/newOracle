@@ -86,17 +86,15 @@ const AlloContractInteraction = () => {
 
       const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
 
-      // Convert the percentage to the correct format (18 decimal places)
-      // Ensure the input is treated as a percentage (e.g., 10 for 10%)
-      const percentFeeInWei = ethers.utils.parseUnits((parseFloat(newPercentFee) / 100).toString(), 18);
+      // Convert the integer percentage to the correct format (18 decimal places)
+      const percentFeeInWei = ethers.utils.parseUnits(newPercentFee, 16);
       console.log("New percent fee in wei:", percentFeeInWei.toString());
 
-      if (percentFeeInWei.gt(ethers.utils.parseUnits("1", 18))) {
+      if (parseInt(newPercentFee) > 100) {
         throw new Error("Percentage fee cannot exceed 100%");
       }
 
-      // Try to send the transaction
-      // If it fails due to permissions, it will throw an error
+      // Send the transaction
       const tx = await contract.updatePercentFee(percentFeeInWei);
       console.log("Transaction sent:", tx.hash);
 
@@ -129,17 +127,19 @@ const AlloContractInteraction = () => {
     <div>
       <h2 style={{ color: 'black' }}>Allo Contract Information</h2>
       <p style={{ color: 'black' }}>Fee Denominator: {contractInfo.feeDenominator}</p>
-      <p style={{ color: 'black' }}>Percent Fee: {contractInfo.percentFee}%</p>
+      <p>Current Percent Fee: {parseInt(ethers.utils.formatUnits(contractInfo.percentFee, 16))}%</p>
       <p style={{ color: 'black' }}>Base Fee: {contractInfo.baseFee} ETH</p>
       <p style={{ color: 'black' }}>Treasury Address: {contractInfo.treasury}</p>
       <p style={{ color: 'black' }}>Registry Address: {contractInfo.registry}</p>
       <h3 style={{ color: 'black' }}>Update Percentage Fee</h3>
       <input 
         type="number" 
-        step="0.01"
+        step="1"
+        min="0"
+        max="100"
         value={newPercentFee} 
         onChange={(e) => setNewPercentFee(e.target.value)} 
-        placeholder="New Percentage Fee (e.g., 10 for 10%)"
+        placeholder="New Percentage Fee (0-100)"
       />
       <button onClick={updatePercentFee}>Update Fee</button>
 
