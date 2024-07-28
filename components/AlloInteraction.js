@@ -20,7 +20,6 @@ const alloABI = parseAbi([
 
 const anchorABI = parseAbi([
   "function hasRole(bytes32 role, address account) view returns (bool)",
-  "function OWNER_ROLE() view returns (bytes32)",
 ]);
 
 const AlloAndAnchorInteraction = () => {
@@ -28,10 +27,8 @@ const AlloAndAnchorInteraction = () => {
   const [status, setStatus] = useState("");
   const [userAddress, setUserAddress] = useState("");
   const [currentFee, setCurrentFee] = useState("");
-  const [isAlloOwner, setIsAlloOwner] = useState(false);
   const [isAnchorOwner, setIsAnchorOwner] = useState(false);
-  const [alloOwnerAddress, setAlloOwnerAddress] = useState("");
-  const [anchorOwnerRole, setAnchorOwnerRole] = useState("");
+  const [ownerRoleId, setOwnerRoleId] = useState("");
 
   const publicClient = createPublicClient({
     chain: optimism,
@@ -54,7 +51,6 @@ const AlloAndAnchorInteraction = () => {
         });
         setUserAddress(address);
         await fetchCurrentFee();
-        await checkAlloOwnership(address);
         await checkAnchorOwnership(address);
       } catch (error) {
         console.error("Failed to connect to MetaMask:", error);
@@ -106,34 +102,21 @@ const AlloAndAnchorInteraction = () => {
     }
   };
 
-  const checkAlloOwnership = async (address) => {
-    try {
-      const alloOwner = await registry.getAlloOwner();
-      setAlloOwnerAddress(alloOwner);
-      setIsAlloOwner(alloOwner.toLowerCase() === address.toLowerCase());
-    } catch (error) {
-      console.error("Error checking Allo ownership:", error);
-      setStatus("Error checking Allo ownership. Check console for details.");
-    }
-  };
-
   const checkAnchorOwnership = async (address) => {
     try {
-      const ownerRole = await publicClient.readContract({
-        address: ANCHOR_PROXY_ADDRESS,
-        abi: anchorABI,
-        functionName: "OWNER_ROLE",
-      });
+      // Step 1: Get the owner role ID from the Registry contract
+      const roleId = await registry.getAlloOwner();
+      setOwnerRoleId(roleId);
 
+      // Step 2: Check if the connected address has this role in the Anchor contract
       const isOwner = await publicClient.readContract({
         address: ANCHOR_PROXY_ADDRESS,
         abi: anchorABI,
         functionName: "hasRole",
-        args: [ownerRole, address],
+        args: [roleId, address],
       });
 
       setIsAnchorOwner(isOwner);
-      setAnchorOwnerRole(ownerRole);
     } catch (error) {
       console.error("Error checking Anchor ownership:", error);
       setStatus("Error checking Anchor ownership. Check console for details.");
@@ -156,7 +139,7 @@ const AlloAndAnchorInteraction = () => {
       return;
     }
 
-    if (!isAlloOwner) {
+    if (!isAnchorOwner) {
       setStatus("Error: You don't have permission to update the fee.");
       return;
     }
@@ -198,9 +181,7 @@ const AlloAndAnchorInteraction = () => {
         {userAddress ? (
           <>
             <p>Connected Address: {userAddress}</p>
-            <p>Allo Owner Address: {alloOwnerAddress}</p>
-            <p>Is Connected Address Allo Owner: {isAlloOwner ? "Yes" : "No"}</p>
-            <p>Anchor Owner Role: {anchorOwnerRole}</p>
+            <p>Owner Role ID (from Registry): {ownerRoleId}</p>
             <p>
               Is Connected Address Anchor Owner: {isAnchorOwner ? "Yes" : "No"}
             </p>
@@ -216,7 +197,7 @@ const AlloAndAnchorInteraction = () => {
           onChange={(e) => setNewFee(e.target.value)}
           placeholder="New fee percentage"
         />
-        <button onClick={handleUpdateFee} disabled={!isAlloOwner}>
+        <button onClick={handleUpdateFee} disabled={!isAnchorOwner}>
           Update Fee
         </button>
         {status && <p>{status}</p>}
