@@ -166,6 +166,7 @@ const AlloInteraction = () => {
         {userAddress ? (
           <>
             <p>Connected Address: {userAddress}</p>
+            <p>Real Allo Owner : {alloOwnerAddress} </p>
             <p>Is Allo Owner: {isOwner ? "Yes" : "No"}</p>
           </>
         ) : (
