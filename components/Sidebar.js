@@ -30,9 +30,9 @@ const Sidebar = () => {
       <nav className={styles.nav}>
         <div className={styles.iconsContainer}>
           <FontAwesomeIcon icon={faCalendarDays} className={styles.faIcons} />
-          <FontAwesomeIcon icon={faTasks} className={styles.faIcons}/>
+          <FontAwesomeIcon icon={faTasks} className={styles.faIcons} />
           <FontAwesomeIcon icon={faUsers} className={styles.faIcons} />
-          <FontAwesomeIcon icon={faUser}  className={styles.faIcons}/>
+          <FontAwesomeIcon icon={faUser} className={styles.faIcons} />
         </div>
         <div className={styles.linksContainer}>
           <Link href="/" className={`${styles.navItem} ${isActive("/events")}`}>
@@ -51,17 +51,16 @@ const Sidebar = () => {
             Communities
           </Link>
           <Link
-            href="/"
-            className={`${styles.navItem} ${isActive("/profile")}`}
+            href="/allo"
+            className={`${styles.navItem} ${isActive("/allo")}`}
           >
-            Profile
+            Allo
           </Link>
         </div>
-        
       </nav>
-      
+
       <div className={styles.connectWalletContainer}>
-      {connected && <ConnectWallet />}
+        {connected && <ConnectWallet />}
       </div>
     </aside>
   );
