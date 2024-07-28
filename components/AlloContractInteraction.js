@@ -94,6 +94,10 @@ const AlloContractInteraction = () => {
       );
       console.log("New percent fee in wei:", percentFeeInWei.toString());
 
+      if (percentFeeInWei.gt(ethers.utils.parseUnits("1", 18))) {
+        throw new Error("Percentage fee cannot exceed 100%");
+      }
+
       // Try to send the transaction
       // If it fails due to permissions, it will throw an error
       const tx = await contract.updatePercentFee(percentFeeInWei);
