@@ -127,6 +127,7 @@ const AlloAndAnchorInteraction = () => {
   const checkAlloOwnership = async (address) => {
     try {
       const alloOwner = await allo.owner();
+      console.log(alloOwner);
       setIsAlloOwner(alloOwner.toLowerCase() === address.toLowerCase());
     } catch (error) {
       console.error("Error checking Allo ownership:", error);
