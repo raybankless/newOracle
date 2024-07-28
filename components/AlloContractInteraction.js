@@ -90,20 +90,19 @@ const AlloContractInteraction = () => {
       const currentFee = await contract.getPercentFee();
       console.log(
         "Current percent fee:",
-        ethers.utils.formatUnits(currentFee, 18),
+        ethers.utils.formatUnits(currentFee, 16)
       );
 
-      // Convert the percentage to the correct format (18 decimal places)
-      // Ensure the input is treated as a percentage (e.g., 10 for 10%)
-      const percentFeeInWei = ethers.utils.parseUnits(
-        (parseFloat(newPercentFee) / 100).toString(),
-        18,
-      );
+      // Convert the whole number percentage to the correct format (16 decimal places)
+      const percentFeeInWei = ethers.utils.parseUnits(newPercentFee, 16);
       console.log("New percent fee in wei:", percentFeeInWei.toString());
 
+      if (parseInt(newPercentFee) > 100) {
+        throw new Error("Percentage fee cannot exceed 100%");
+      }
+
       // Additional check: Estimate gas
-      const gasEstimate =
-        await contract.estimateGas.updatePercentFee(percentFeeInWei);
+      const gasEstimate = await contract.estimateGas.updatePercentFee(percentFeeInWei);
       console.log("Estimated gas:", gasEstimate.toString());
 
       // Try to send the transaction
@@ -151,7 +150,9 @@ const AlloContractInteraction = () => {
       <p style={{ color: "black" }}>
         Fee Denominator: {contractInfo.feeDenominator}
       </p>
-      <p style={{ color: "black" }}>Percent Fee: {contractInfo.percentFee}%</p>
+      <p style={{ color: "black" }}>
+        Percent Fee: {parseInt(ethers.utils.formatUnits(contractInfo.percentFee, 16))}%
+      </p>
       <p style={{ color: "black" }}>Base Fee: {contractInfo.baseFee} ETH</p>
       <p style={{ color: "black" }}>
         Treasury Address: {contractInfo.treasury}
@@ -162,10 +163,12 @@ const AlloContractInteraction = () => {
       <h3 style={{ color: "black" }}>Update Percentage Fee</h3>
       <input
         type="number"
-        step="0.01"
+        step="1"
+        min="0"
+        max="100"
         value={newPercentFee}
         onChange={(e) => setNewPercentFee(e.target.value)}
-        placeholder="New Percentage Fee (e.g., 10 for 10%)"
+        placeholder="New Percentage Fee (1-100)"
       />
       <button onClick={updatePercentFee}>Update Fee</button>
 
