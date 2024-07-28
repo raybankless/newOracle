@@ -11,19 +11,27 @@ import { optimism } from "viem/chains";
 import { Allo, Registry } from "@allo-team/allo-v2-sdk";
 
 const ALLO_ADDRESS = "0xe0871238de109E0Af23aF651786d8484c0b0d656";
+const ANCHOR_PROXY_ADDRESS = "0xAe127f1239E435B78f11a1f8421206483eA1c390";
 
 const alloABI = parseAbi([
   "function updatePercentFee(uint256 _percentFee)",
   "function getPercentFee() view returns (uint256)",
 ]);
 
-const AlloInteraction = () => {
+const anchorABI = parseAbi([
+  "function hasRole(bytes32 role, address account) view returns (bool)",
+  "function OWNER_ROLE() view returns (bytes32)",
+]);
+
+const AlloAndAnchorInteraction = () => {
   const [newFee, setNewFee] = useState("");
   const [status, setStatus] = useState("");
   const [userAddress, setUserAddress] = useState("");
   const [currentFee, setCurrentFee] = useState("");
-  const [isOwner, setIsOwner] = useState(false);
+  const [isAlloOwner, setIsAlloOwner] = useState(false);
+  const [isAnchorOwner, setIsAnchorOwner] = useState(false);
   const [alloOwnerAddress, setAlloOwnerAddress] = useState("");
+  const [anchorOwnerRole, setAnchorOwnerRole] = useState("");
 
   const publicClient = createPublicClient({
     chain: optimism,
@@ -46,7 +54,8 @@ const AlloInteraction = () => {
         });
         setUserAddress(address);
         await fetchCurrentFee();
-        await checkOwnership(address);
+        await checkAlloOwnership(address);
+        await checkAnchorOwnership(address);
       } catch (error) {
         console.error("Failed to connect to MetaMask:", error);
         setStatus("Failed to connect to MetaMask. Please try again.");
@@ -97,14 +106,37 @@ const AlloInteraction = () => {
     }
   };
 
-  const checkOwnership = async (address) => {
+  const checkAlloOwnership = async (address) => {
     try {
       const alloOwner = await registry.getAlloOwner();
       setAlloOwnerAddress(alloOwner);
-      setIsOwner(alloOwner.toLowerCase() === address.toLowerCase());
+      setIsAlloOwner(alloOwner.toLowerCase() === address.toLowerCase());
     } catch (error) {
-      console.error("Error checking ownership:", error);
-      setStatus("Error checking ownership. Check console for details.");
+      console.error("Error checking Allo ownership:", error);
+      setStatus("Error checking Allo ownership. Check console for details.");
+    }
+  };
+
+  const checkAnchorOwnership = async (address) => {
+    try {
+      const ownerRole = await publicClient.readContract({
+        address: ANCHOR_PROXY_ADDRESS,
+        abi: anchorABI,
+        functionName: "OWNER_ROLE",
+      });
+
+      const isOwner = await publicClient.readContract({
+        address: ANCHOR_PROXY_ADDRESS,
+        abi: anchorABI,
+        functionName: "hasRole",
+        args: [ownerRole, address],
+      });
+
+      setIsAnchorOwner(isOwner);
+      setAnchorOwnerRole(ownerRole);
+    } catch (error) {
+      console.error("Error checking Anchor ownership:", error);
+      setStatus("Error checking Anchor ownership. Check console for details.");
     }
   };
 
@@ -124,7 +156,7 @@ const AlloInteraction = () => {
       return;
     }
 
-    if (!isOwner) {
+    if (!isAlloOwner) {
       setStatus("Error: You don't have permission to update the fee.");
       return;
     }
@@ -152,7 +184,7 @@ const AlloInteraction = () => {
       setStatus("Transaction sent. Waiting for confirmation...");
       await publicClient.waitForTransactionReceipt({ hash });
       setStatus("Percentage fee updated successfully!");
-      await fetchCurrentFee(); // Refresh the current fee
+      await fetchCurrentFee();
     } catch (error) {
       console.error("Error updating fee:", error);
       setStatus("Error updating fee. Check console for details.");
@@ -161,13 +193,17 @@ const AlloInteraction = () => {
 
   return (
     <div>
-      <h2>Allo Interaction</h2>
+      <h2>Allo and Anchor Interaction</h2>
       <div>
         {userAddress ? (
           <>
             <p>Connected Address: {userAddress}</p>
-            <p>Real Allo Owner : {alloOwnerAddress} </p>
-            <p>Is Allo Owner: {isOwner ? "Yes" : "No"}</p>
+            <p>Allo Owner Address: {alloOwnerAddress}</p>
+            <p>Is Connected Address Allo Owner: {isAlloOwner ? "Yes" : "No"}</p>
+            <p>Anchor Owner Role: {anchorOwnerRole}</p>
+            <p>
+              Is Connected Address Anchor Owner: {isAnchorOwner ? "Yes" : "No"}
+            </p>
           </>
         ) : (
           <button onClick={connectToMetaMask}>Connect to MetaMask</button>
@@ -180,7 +216,7 @@ const AlloInteraction = () => {
           onChange={(e) => setNewFee(e.target.value)}
           placeholder="New fee percentage"
         />
-        <button onClick={handleUpdateFee} disabled={!isOwner}>
+        <button onClick={handleUpdateFee} disabled={!isAlloOwner}>
           Update Fee
         </button>
         {status && <p>{status}</p>}
@@ -189,4 +225,4 @@ const AlloInteraction = () => {
   );
 };
 
-export default AlloInteraction;
+export default AlloAndAnchorInteraction;
