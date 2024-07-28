@@ -102,13 +102,15 @@ const AlloContractInteraction = () => {
       console.log("New percent fee in wei:", percentFeeInWei.toString());
 
       // Additional check: Estimate gas
-      // const gasEstimate =
-      await contract.estimateGas.updatePercentFee(percentFeeInWei);
-      // console.log("Estimated gas:", gasEstimate.toString());
+      const gasEstimate =
+        await contract.estimateGas.updatePercentFee(percentFeeInWei);
+      console.log("Estimated gas:", gasEstimate.toString());
 
       // Try to send the transaction
       // If it fails due to permissions, it will throw an error
-      const tx = await contract.updatePercentFee(percentFeeInWei);
+      const tx = await contract.updatePercentFee(percentFeeInWei, {
+        gasLimit: gasEstimate.mul(120).div(100), // Add 20% buffer to the estimate
+      });
       console.log("Transaction sent:", tx.hash);
 
       const receipt = await tx.wait();
