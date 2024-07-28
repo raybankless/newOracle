@@ -1,13 +1,12 @@
-import React from "react";
-import AlloInteraction from "../components/AlloInteraction";
+// pages/allo.tsx
 import Sidebar from "../components/Sidebar";
-import styles from "../styles/Dashboard.module.css";
+import AlloInteraction from "../components/AlloInteraction";
 
-const AlloPage: React.FC = () => {
+const AlloPage = () => {
   return (
-    <div className={styles.dashboard}>
+    <div>
       <Sidebar />
-      <main className={styles.mainContent}>
+      <main>
         <h1>Allo Interaction</h1>
         <AlloInteraction />
       </main>
