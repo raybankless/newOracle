@@ -1,6 +1,6 @@
 // pages/allo.tsx
 import Sidebar from "../components/Sidebar";
-import AlloInteraction from "../components/AlloInteraction";
+import AlloContractInteraction from "../components/AlloInteraction";
 
 const AlloPage = () => {
   return (
@@ -8,7 +8,7 @@ const AlloPage = () => {
       <Sidebar />
       <main>
         <h1>Allo Interaction</h1>
-        <AlloInteraction />
+        <AlloContractInteraction />
       </main>
     </div>
   );
