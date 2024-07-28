@@ -101,10 +101,6 @@ const AlloContractInteraction = () => {
       );
       console.log("New percent fee in wei:", percentFeeInWei.toString());
 
-      if (percentFeeInWei.gt(ethers.utils.parseUnits("1", 18))) {
-        throw new Error("Percentage fee cannot exceed 100%");
-      }
-
       // Additional check: Estimate gas
       const gasEstimate =
         await contract.estimateGas.updatePercentFee(percentFeeInWei);
