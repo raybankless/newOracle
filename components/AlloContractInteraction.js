@@ -77,21 +77,43 @@ const AlloContractInteraction = () => {
 
   const updatePercentFee = async () => {
     try {
-      // You need to connect with a signer that has owner permissions
+      console.log("Starting updatePercentFee function");
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       await provider.send("eth_requestAccounts", []);
       const signer = provider.getSigner();
+      const signerAddress = await signer.getAddress();
+      console.log("Signer address:", signerAddress);
+
       const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
 
-      // Convert the percentage to the correct format (assuming 18 decimal places)
-      const percentFeeInWei = ethers.utils.parseUnits(newPercentFee, 18);
+      // Check if the signer is the contract owner
+      // Note: We need to add the 'owner()' function to the ABI if it's not there already
+      const owner = await contract.owner();
+      console.log("Contract owner:", owner);
+      console.log("Is signer the owner?", signerAddress.toLowerCase() === owner.toLowerCase());
+
+      if (signerAddress.toLowerCase() !== owner.toLowerCase()) {
+        throw new Error("You are not the contract owner. Only the owner can update the percentage fee.");
+      }
+
+      // Convert the percentage to the correct format (18 decimal places)
+      // Ensure the input is treated as a percentage (e.g., 10 for 10%)
+      const percentFeeInWei = ethers.utils.parseUnits((parseFloat(newPercentFee) / 100).toString(), 18);
+      console.log("New percent fee in wei:", percentFeeInWei.toString());
+
+      if (percentFeeInWei.gt(ethers.utils.parseUnits("1", 18))) {
+        throw new Error("Percentage fee cannot exceed 100%");
+      }
 
       // Send the transaction
       const tx = await contract.updatePercentFee(percentFeeInWei);
-      await tx.wait();
+      console.log("Transaction sent:", tx.hash);
+
+      const receipt = await tx.wait();
+      console.log("Transaction confirmed in block:", receipt.blockNumber);
 
       // Refresh the contract info after updating
-      fetchContractInfo();
+      await fetchContractInfo();
 
       console.log("Percentage fee updated successfully");
     } catch (err) {
@@ -99,7 +121,6 @@ const AlloContractInteraction = () => {
       setError(err.message || "An error occurred while updating the percentage fee");
     }
   };
-
 
   if (error) {
     return <p>Error: {error}</p>;
@@ -119,10 +140,11 @@ const AlloContractInteraction = () => {
       <p style={{ color: 'black' }}>Registry Address: {contractInfo.registry}</p>
       <h3 style={{ color: 'black' }}>Update Percentage Fee</h3>
       <input 
-        type="text" 
+        type="number" 
+        step="0.01"
         value={newPercentFee} 
         onChange={(e) => setNewPercentFee(e.target.value)} 
-        placeholder="New Percentage Fee"
+        placeholder="New Percentage Fee (e.g., 10 for 10%)"
       />
       <button onClick={updatePercentFee}>Update Fee</button>
 
