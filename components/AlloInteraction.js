@@ -9,7 +9,7 @@ const AlloInteraction = () => {
   useEffect(() => {
     const initAllo = async () => {
       try {
-        const allo = new Allo({ chain: 5 });
+        const allo = new Allo({ chain: 10 });
         if (allo && typeof allo.address === "function") {
           const address = allo.address();
           setAlloAddress(address);
