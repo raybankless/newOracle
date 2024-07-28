@@ -88,7 +88,7 @@ const AlloContractInteraction = () => {
 
       // Convert the percentage to the correct format (18 decimal places)
       // Ensure the input is treated as a percentage (e.g., 10 for 10%)
-      const percentFeeInWei = ethers.utils.parseUnits((parseFloat(newPercentFee) / 100).toString(), 18);
+      const percentFeeInWei = ethers.utils.parseUnits((parseFloat(newPercentFee) / 100).toString(), 17);
       console.log("New percent fee in wei:", percentFeeInWei.toString());
 
       if (percentFeeInWei.gt(ethers.utils.parseUnits("1", 18))) {
