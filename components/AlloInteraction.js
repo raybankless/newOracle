@@ -20,15 +20,18 @@ const alloABI = parseAbi([
 
 const anchorABI = parseAbi([
   "function hasRole(bytes32 role, address account) view returns (bool)",
+  "function OWNER_ROLE() view returns (bytes32)",
 ]);
 
 const AlloAndAnchorInteraction = () => {
+  const [userAddress, setUserAddress] = useState("");
+  const [profileId, setProfileId] = useState("");
+  const [isProfileOwner, setIsProfileOwner] = useState(false);
+  const [isAlloOwner, setIsAlloOwner] = useState(false);
+  const [isAnchorOwner, setIsAnchorOwner] = useState(false);
+  const [currentFee, setCurrentFee] = useState("");
   const [newFee, setNewFee] = useState("");
   const [status, setStatus] = useState("");
-  const [userAddress, setUserAddress] = useState("");
-  const [currentFee, setCurrentFee] = useState("");
-  const [isAnchorOwner, setIsAnchorOwner] = useState(false);
-  const [ownerRoleId, setOwnerRoleId] = useState("");
 
   const publicClient = createPublicClient({
     chain: optimism,
@@ -50,8 +53,8 @@ const AlloAndAnchorInteraction = () => {
           method: "eth_requestAccounts",
         });
         setUserAddress(address);
+        await checkUserProfile(address);
         await fetchCurrentFee();
-        await checkAnchorOwnership(address);
       } catch (error) {
         console.error("Failed to connect to MetaMask:", error);
         setStatus("Failed to connect to MetaMask. Please try again.");
@@ -102,20 +105,41 @@ const AlloAndAnchorInteraction = () => {
     }
   };
 
-  const checkAnchorOwnership = async (address) => {
+  const checkUserProfile = async (address) => {
     try {
-      // Step 1: Get the owner role ID from the Registry contract
-      const roleId = await registry.getAlloOwner();
-      setOwnerRoleId(roleId);
+      const profiles = await registry.getProfilesByOwner(address);
+      if (profiles.length > 0) {
+        setProfileId(profiles[0].id);
+        setIsProfileOwner(true);
+        await checkAlloOwnership(address);
+        await checkAnchorOwnership(address, profiles[0].id);
+      } else {
+        setStatus(
+          "No profile found. You need to create a profile to interact with Allo.",
+        );
+      }
+    } catch (error) {
+      console.error("Error checking user profile:", error);
+      setStatus("Error checking user profile. Check console for details.");
+    }
+  };
 
-      // Step 2: Check if the connected address has this role in the Anchor contract
-      const isOwner = await publicClient.readContract({
-        address: ANCHOR_PROXY_ADDRESS,
-        abi: anchorABI,
-        functionName: "hasRole",
-        args: [roleId, address],
+  const checkAlloOwnership = async (address) => {
+    try {
+      const alloOwner = await allo.owner();
+      setIsAlloOwner(alloOwner.toLowerCase() === address.toLowerCase());
+    } catch (error) {
+      console.error("Error checking Allo ownership:", error);
+      setStatus("Error checking Allo ownership. Check console for details.");
+    }
+  };
+
+  const checkAnchorOwnership = async (address, profileId) => {
+    try {
+      const isOwner = await registry.isOwnerOfProfile({
+        profileId,
+        account: address,
       });
-
       setIsAnchorOwner(isOwner);
     } catch (error) {
       console.error("Error checking Anchor ownership:", error);
@@ -139,7 +163,7 @@ const AlloAndAnchorInteraction = () => {
       return;
     }
 
-    if (!isAnchorOwner) {
+    if (!isAlloOwner) {
       setStatus("Error: You don't have permission to update the fee.");
       return;
     }
@@ -174,6 +198,49 @@ const AlloAndAnchorInteraction = () => {
     }
   };
 
+  const createProfile = async () => {
+    if (!userAddress) {
+      setStatus("Please connect to MetaMask first.");
+      return;
+    }
+
+    try {
+      const walletClient = createWalletClient({
+        chain: optimism,
+        transport: custom(window.ethereum),
+      });
+
+      const createProfileArgs = {
+        nonce: Date.now(),
+        name: "New Profile",
+        metadata: {
+          protocol: BigInt(1),
+          pointer: "ipfs://your_metadata_hash",
+        },
+        owner: userAddress,
+        members: [userAddress],
+      };
+
+      const txData = registry.createProfile(createProfileArgs);
+
+      const hash = await walletClient.sendTransaction({
+        account: userAddress,
+        to: txData.to,
+        data: txData.data,
+      });
+
+      setStatus(
+        "Profile creation transaction sent. Waiting for confirmation...",
+      );
+      await publicClient.waitForTransactionReceipt({ hash });
+      setStatus("Profile created successfully!");
+      await checkUserProfile(userAddress);
+    } catch (error) {
+      console.error("Error creating profile:", error);
+      setStatus("Error creating profile. Check console for details.");
+    }
+  };
+
   return (
     <div>
       <h2>Allo and Anchor Interaction</h2>
@@ -181,25 +248,34 @@ const AlloAndAnchorInteraction = () => {
         {userAddress ? (
           <>
             <p>Connected Address: {userAddress}</p>
-            <p>Owner Role ID (from Registry): {ownerRoleId}</p>
-            <p>
-              Is Connected Address Anchor Owner: {isAnchorOwner ? "Yes" : "No"}
-            </p>
+            {profileId ? (
+              <>
+                <p>Profile ID: {profileId}</p>
+                <p>Is Profile Owner: {isProfileOwner ? "Yes" : "No"}</p>
+                <p>Is Allo Owner: {isAlloOwner ? "Yes" : "No"}</p>
+                <p>Is Anchor Owner: {isAnchorOwner ? "Yes" : "No"}</p>
+                <h3>Current Percentage Fee: {currentFee}%</h3>
+                <h3>Update Percentage Fee</h3>
+                <input
+                  type="number"
+                  value={newFee}
+                  onChange={(e) => setNewFee(e.target.value)}
+                  placeholder="New fee percentage"
+                />
+                <button onClick={handleUpdateFee} disabled={!isAlloOwner}>
+                  Update Fee
+                </button>
+              </>
+            ) : (
+              <>
+                <p>No profile found.</p>
+                <button onClick={createProfile}>Create Profile</button>
+              </>
+            )}
           </>
         ) : (
           <button onClick={connectToMetaMask}>Connect to MetaMask</button>
         )}
-        <h3>Current Percentage Fee: {currentFee}%</h3>
-        <h3>Update Percentage Fee</h3>
-        <input
-          type="number"
-          value={newFee}
-          onChange={(e) => setNewFee(e.target.value)}
-          placeholder="New fee percentage"
-        />
-        <button onClick={handleUpdateFee} disabled={!isAnchorOwner}>
-          Update Fee
-        </button>
         {status && <p>{status}</p>}
       </div>
     </div>
