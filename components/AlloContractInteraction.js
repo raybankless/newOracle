@@ -86,34 +86,17 @@ const AlloContractInteraction = () => {
 
       const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
 
-      // Check if the signer is the contract owner
-      // Note: We need to add the 'owner()' function to the ABI if it's not there already
-      const owner = await contract.owner();
-      console.log("Contract owner:", owner);
-      console.log(
-        "Is signer the owner?",
-        signerAddress.toLowerCase() === owner.toLowerCase(),
-      );
-
-      if (signerAddress.toLowerCase() !== owner.toLowerCase()) {
-        throw new Error(
-          "You are not the contract owner. Only the owner can update the percentage fee.",
-        );
-      }
-
       // Convert the percentage to the correct format (18 decimal places)
       // Ensure the input is treated as a percentage (e.g., 10 for 10%)
-      const percentFeeInWei = ethers.utils.parseUnits(
-        (parseFloat(newPercentFee) / 100).toString(),
-        18,
-      );
+      const percentFeeInWei = ethers.utils.parseUnits((parseFloat(newPercentFee) / 100).toString(), 18);
       console.log("New percent fee in wei:", percentFeeInWei.toString());
 
       if (percentFeeInWei.gt(ethers.utils.parseUnits("1", 18))) {
         throw new Error("Percentage fee cannot exceed 100%");
       }
 
-      // Send the transaction
+      // Try to send the transaction
+      // If it fails due to permissions, it will throw an error
       const tx = await contract.updatePercentFee(percentFeeInWei);
       console.log("Transaction sent:", tx.hash);
 
@@ -126,9 +109,11 @@ const AlloContractInteraction = () => {
       console.log("Percentage fee updated successfully");
     } catch (err) {
       console.error("Error updating percentage fee:", err);
-      setError(
-        err.message || "An error occurred while updating the percentage fee",
-      );
+      if (err.message.includes("Ownable: caller is not the owner")) {
+        setError("You are not the contract owner. Only the owner can update the percentage fee.");
+      } else {
+        setError(err.message || "An error occurred while updating the percentage fee");
+      }
     }
   };
 
@@ -142,24 +127,18 @@ const AlloContractInteraction = () => {
 
   return (
     <div>
-      <h2 style={{ color: "black" }}>Allo Contract Information</h2>
-      <p style={{ color: "black" }}>
-        Fee Denominator: {contractInfo.feeDenominator}
-      </p>
-      <p style={{ color: "black" }}>Percent Fee: {contractInfo.percentFee}%</p>
-      <p style={{ color: "black" }}>Base Fee: {contractInfo.baseFee} ETH</p>
-      <p style={{ color: "black" }}>
-        Treasury Address: {contractInfo.treasury}
-      </p>
-      <p style={{ color: "black" }}>
-        Registry Address: {contractInfo.registry}
-      </p>
-      <h3 style={{ color: "black" }}>Update Percentage Fee</h3>
-      <input
-        type="number"
+      <h2 style={{ color: 'black' }}>Allo Contract Information</h2>
+      <p style={{ color: 'black' }}>Fee Denominator: {contractInfo.feeDenominator}</p>
+      <p style={{ color: 'black' }}>Percent Fee: {contractInfo.percentFee}%</p>
+      <p style={{ color: 'black' }}>Base Fee: {contractInfo.baseFee} ETH</p>
+      <p style={{ color: 'black' }}>Treasury Address: {contractInfo.treasury}</p>
+      <p style={{ color: 'black' }}>Registry Address: {contractInfo.registry}</p>
+      <h3 style={{ color: 'black' }}>Update Percentage Fee</h3>
+      <input 
+        type="number" 
         step="0.01"
-        value={newPercentFee}
-        onChange={(e) => setNewPercentFee(e.target.value)}
+        value={newPercentFee} 
+        onChange={(e) => setNewPercentFee(e.target.value)} 
         placeholder="New Percentage Fee (e.g., 10 for 10%)"
       />
       <button onClick={updatePercentFee}>Update Fee</button>
