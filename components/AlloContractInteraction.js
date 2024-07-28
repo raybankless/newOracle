@@ -88,12 +88,11 @@ const AlloContractInteraction = () => {
 
       // Convert the percentage to the correct format (18 decimal places)
       // Ensure the input is treated as a percentage (e.g., 10 for 10%)
-      const percentFeeInWei = ethers.utils.parseUnits((parseFloat(newPercentFee) / 100).toString(), 17);
+      const percentFeeInWei = ethers.utils.parseUnits(
+        (parseFloat(newPercentFee) / 100).toString(),
+        18,
+      );
       console.log("New percent fee in wei:", percentFeeInWei.toString());
-
-      if (percentFeeInWei.gt(ethers.utils.parseUnits("1", 18))) {
-        throw new Error("Percentage fee cannot exceed 100%");
-      }
 
       // Try to send the transaction
       // If it fails due to permissions, it will throw an error
@@ -110,9 +109,13 @@ const AlloContractInteraction = () => {
     } catch (err) {
       console.error("Error updating percentage fee:", err);
       if (err.message.includes("Ownable: caller is not the owner")) {
-        setError("You are not the contract owner. Only the owner can update the percentage fee.");
+        setError(
+          "You are not the contract owner. Only the owner can update the percentage fee.",
+        );
       } else {
-        setError(err.message || "An error occurred while updating the percentage fee");
+        setError(
+          err.message || "An error occurred while updating the percentage fee",
+        );
       }
     }
   };
@@ -127,18 +130,24 @@ const AlloContractInteraction = () => {
 
   return (
     <div>
-      <h2 style={{ color: 'black' }}>Allo Contract Information</h2>
-      <p style={{ color: 'black' }}>Fee Denominator: {contractInfo.feeDenominator}</p>
-      <p style={{ color: 'black' }}>Percent Fee: {contractInfo.percentFee}%</p>
-      <p style={{ color: 'black' }}>Base Fee: {contractInfo.baseFee} ETH</p>
-      <p style={{ color: 'black' }}>Treasury Address: {contractInfo.treasury}</p>
-      <p style={{ color: 'black' }}>Registry Address: {contractInfo.registry}</p>
-      <h3 style={{ color: 'black' }}>Update Percentage Fee</h3>
-      <input 
-        type="number" 
+      <h2 style={{ color: "black" }}>Allo Contract Information</h2>
+      <p style={{ color: "black" }}>
+        Fee Denominator: {contractInfo.feeDenominator}
+      </p>
+      <p style={{ color: "black" }}>Percent Fee: {contractInfo.percentFee}%</p>
+      <p style={{ color: "black" }}>Base Fee: {contractInfo.baseFee} ETH</p>
+      <p style={{ color: "black" }}>
+        Treasury Address: {contractInfo.treasury}
+      </p>
+      <p style={{ color: "black" }}>
+        Registry Address: {contractInfo.registry}
+      </p>
+      <h3 style={{ color: "black" }}>Update Percentage Fee</h3>
+      <input
+        type="number"
         step="0.01"
-        value={newPercentFee} 
-        onChange={(e) => setNewPercentFee(e.target.value)} 
+        value={newPercentFee}
+        onChange={(e) => setNewPercentFee(e.target.value)}
         placeholder="New Percentage Fee (e.g., 10 for 10%)"
       />
       <button onClick={updatePercentFee}>Update Fee</button>
