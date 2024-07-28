@@ -10,12 +10,10 @@ const AlloInteraction = () => {
     const initAllo = async () => {
       try {
         const allo = new Allo({ chain: 10 });
-        if (allo && typeof allo.address === "function") {
-          const address = allo.address();
-          setAlloAddress(address);
-        } else {
-          throw new Error("Allo instance or address method is undefined");
-        }
+        console.log("allo : ", allo);
+
+        const address = allo.address();
+        setAlloAddress(address);
       } catch (err) {
         console.error("Error initializing Allo:", err);
         setError(err.message || "Failed to initialize Allo");
