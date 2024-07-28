@@ -23,6 +23,7 @@ const AlloInteraction = () => {
   const [userAddress, setUserAddress] = useState("");
   const [currentFee, setCurrentFee] = useState("");
   const [isOwner, setIsOwner] = useState(false);
+  const [alloOwnerAddress, setAlloOwnerAddress] = useState("");
 
   const publicClient = createPublicClient({
     chain: optimism,
@@ -99,9 +100,11 @@ const AlloInteraction = () => {
   const checkOwnership = async (address) => {
     try {
       const alloOwner = await registry.getAlloOwner();
+      setAlloOwnerAddress(alloOwner);
       setIsOwner(alloOwner.toLowerCase() === address.toLowerCase());
     } catch (error) {
       console.error("Error checking ownership:", error);
+      setStatus("Error checking ownership. Check console for details.");
     }
   };
 
