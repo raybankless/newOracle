@@ -150,9 +150,7 @@ const AlloContractInteraction = () => {
       <p style={{ color: "black" }}>
         Fee Denominator: {contractInfo.feeDenominator}
       </p>
-      <p style={{ color: "black" }}>
-        Percent Fee: {parseInt(ethers.utils.formatUnits(contractInfo.percentFee, 16))}%
-      </p>
+      <p style={{ color: "black" }}>Percent Fee: {contractInfo.percentFee}%</p>
       <p style={{ color: "black" }}>Base Fee: {contractInfo.baseFee} ETH</p>
       <p style={{ color: "black" }}>
         Treasury Address: {contractInfo.treasury}
