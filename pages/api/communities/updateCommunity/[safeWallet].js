@@ -4,7 +4,7 @@ import Community from '../../../../models/Community';
 
 export default async function handler(req, res) {
   const { method } = req;
-  const { safeWallet } = req.query; // Assume safeWallet is passed as a query parameter
+  const { safeWallet } = req.query; 
   const updateData = req.body;
 
   await dbConnect();

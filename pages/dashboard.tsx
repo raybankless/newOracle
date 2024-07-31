@@ -85,54 +85,38 @@ const Dashboard = () => {
   }
 
   useEffect(() => {
-    const fetchEvents = async () => {
-      if (currentWallet) {
-        try {
-          const res = await fetch(`/api/${currentWallet}`);
-          const { data } = await res.json();
-          if (data && Array.isArray(data)) {
-            // Sort the events based on the createdAt field in descending order
-            const sortedEvents = data.sort(
-              (a, b) =>
-                new Date(b.createdAt).getTime() -
-                new Date(a.createdAt).getTime(),
-            );
-
-            setEvents(sortedEvents);
-
-            if (!window.ethereum) {
-              console.log("MetaMask is not installed!");
-              return;
-            }
-
-            await switchToOptimism();
-
-            await window.ethereum.request({ method: "eth_requestAccounts" }); // Request user to connect their MetaMask
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const signer = provider.getSigner();
-            console.log("Signer:", signer);
-            await provider.send("eth_accounts", []);
-            const tempAddress = await signer.getAddress();
-
-            const response = await fetch(
-              `/api/communities/getByOwner?ownerWallet=${tempAddress}`,
-            );
-
-            const { data: communities, success } = await response.json();
-            if (success) {
-              console.log("communityData : ", communities);
-              setCommunities(communities);
-            } else {
-              console.error("No communities found or an error occurred");
-            }
-          }
-        } catch (error) {
-          console.error("Failed to fetch events:", error);
+    const fetchAllEvents = async () => {
+      try {
+        const response = await fetch('/api/events/getAll');
+        const data = await response.json();
+        if (data.success) {
+          setEvents(data.events);
+        } else {
+          console.error('Failed to fetch events:', data.message);
         }
+      } catch (error) {
+        console.error('Error fetching events:', error);
       }
     };
-    fetchEvents();
-  }, [currentWallet]);
+
+    // Fetch all communities
+    const fetchAllCommunities = async () => {
+      try {
+        const response = await fetch('/api/communities/getAll');
+        const data = await response.json();
+        if (data.success) {
+          setCommunities(data.data);
+        } else {
+          console.error('Failed to fetch communities:', data.message);
+        }
+      } catch (error) {
+        console.error('Error fetching communities:', error);
+      }
+    };
+
+    fetchAllEvents();
+    fetchAllCommunities();
+    }, []);
 
   useEffect(() => {
     const handleQRData = async () => {
@@ -204,10 +188,10 @@ const Dashboard = () => {
               onOpenCommunityDashboard={openCommunityDashboard}
             />
             <h2>Events</h2>
-            <EventsGrid events={events} onEventSelect={handleEventSelect} />
+            <EventsGrid events={events.slice(0, 8)} onEventSelect={handleEventSelect} />
             <h2>Communities</h2>
             <CommunitiesGrid
-              communities={communities}
+              communities={communities.slice(0, 8)}
               onCommunitySelect={handleCommunitySelect}
             />
             <h2>Tasks</h2>
