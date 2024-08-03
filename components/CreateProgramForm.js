@@ -21,20 +21,19 @@ const CreateProgramForm = () => {
   const { mutateAsync: createProfile } = useContractWrite(registryContract, "createProfile");
   const { mutateAsync: createPool } = useContractWrite(alloContract, "createPool");
 
-
-  const handleAddOperator = () => {
-    setOperators([...operators, { walletAddress: '' }]);
+  const handleAddAdmin = () => {
+    setAdditionalAdmins([...additionalAdmins, { walletAddress: '' }]);
   };
 
-  const handleOperatorChange = (index, value) => {
-    const newOperators = [...operators];
-    newOperators[index].walletAddress = value;
-    setOperators(newOperators);
+  const handleAdminChange = (index, value) => {
+    const newAdmins = [...additionalAdmins];
+    newAdmins[index].walletAddress = value;
+    setAdditionalAdmins(newAdmins);
   };
 
-  const handleRemoveOperator = (index) => {
-    const newOperators = operators.filter((_, i) => i !== index);
-    setOperators(newOperators);
+  const handleRemoveAdmin = (index) => {
+    const newAdmins = additionalAdmins.filter((_, i) => i !== index);
+    setAdditionalAdmins(newAdmins);
   };
 
   const handleSubmit = async (e) => {
@@ -103,19 +102,18 @@ const CreateProgramForm = () => {
           />
         </div>
         <div className={styles.formGroup}>
-          <h3>Add Operator(s)</h3>
-          {operators.map((operator, index) => (
+          <h3>Additional Admins</h3>
+          {additionalAdmins.map((admin, index) => (
             <div key={index} style={{ display: 'flex', marginBottom: '10px' }}>
               <input
                 type="text"
-                value={operator.walletAddress}
-                onChange={(e) => handleOperatorChange(index, e.target.value)}
+                value={admin.walletAddress}
+                onChange={(e) => handleAdminChange(index, e.target.value)}
                 placeholder="Wallet Address"
-                required
               />
               <button 
                 type="button" 
-                onClick={() => handleRemoveOperator(index)}
+                onClick={() => handleRemoveAdmin(index)}
                 className={styles.closeButton}
               >
                 &times;
@@ -124,15 +122,24 @@ const CreateProgramForm = () => {
           ))}
           <button 
             type="button" 
-            onClick={handleAddOperator}
+            onClick={handleAddAdmin}
             className={styles.submitButton}
             style={{ marginTop: '10px', width: 'auto' }}
           >
-            + Add Operator
+            + Add Admin
           </button>
         </div>
-        <button type="submit" className={styles.submitButton}>Save</button>
+        <button type="submit" className={styles.submitButton}>
+          Create Program
+        </button>
       </form>
+      {poolId && (
+        <div>
+          <h3>Program Created!</h3>
+          <p>Pool ID: {poolId}</p>
+          <p>Profile ID: {profileId}</p>
+        </div>
+      )}
     </div>
   );
 };
