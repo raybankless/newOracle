@@ -1,5 +1,5 @@
 // components/CreateProgramForm.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import { useAddress, useContract, useContractWrite } from "@thirdweb-dev/react";
 import styles from "../styles/CreateEventModal.module.css";
 
@@ -9,20 +9,29 @@ const VAULT_STRATEGY_ADDRESS = "0xeED429051B60b77F0492435D6E3F6115d272fE93";
 const OP_TOKEN_ADDRESS = "0x4200000000000000000000000000000000000042";
 
 const CreateProgramForm = () => {
-  const [programName, setProgramName] = useState('');
-  const [additionalAdmins, setAdditionalAdmins] = useState([{ walletAddress: '' }]);
+  const [programName, setProgramName] = useState("");
+  const [additionalAdmins, setAdditionalAdmins] = useState([
+    { walletAddress: "" },
+  ]);
   const [poolId, setPoolId] = useState(null);
   const [profileId, setProfileId] = useState(null);
+  const [error, setError] = useState(null);
   const address = useAddress();
 
   const { contract: alloContract } = useContract(ALLO_CONTRACT_ADDRESS);
   const { contract: registryContract } = useContract(REGISTRY_CONTRACT_ADDRESS);
 
-  const { mutateAsync: createProfile } = useContractWrite(registryContract, "createProfile");
-  const { mutateAsync: createPool } = useContractWrite(alloContract, "createPool");
+  const { mutateAsync: createProfile } = useContractWrite(
+    registryContract,
+    "createProfile",
+  );
+  const { mutateAsync: createPool } = useContractWrite(
+    alloContract,
+    "createPool",
+  );
 
   const handleAddAdmin = () => {
-    setAdditionalAdmins([...additionalAdmins, { walletAddress: '' }]);
+    setAdditionalAdmins([...additionalAdmins, { walletAddress: "" }]);
   };
 
   const handleAdminChange = (index, value) => {
@@ -38,28 +47,52 @@ const CreateProgramForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null);
     if (!address) {
       console.error("No wallet connected");
+      setError("No wallet connected. Please connect your wallet.");
       return;
     }
 
     try {
       // First, create a profile
+      console.log("Creating profile...");
       const profileData = await createProfile({
         args: [
           Date.now(), // nonce
           programName,
           { protocol: 1, pointer: "" }, // metadata
           address,
-          [] // no additional members
+          [], // no additional members
         ],
       });
-      const newProfileId = profileData.receipt.events[0].args.profileId;
+      console.log("Profile creation response:", profileData);
+
+      if (!profileData || !profileData.receipt || !profileData.receipt.events) {
+        throw new Error("Unexpected response structure from profile creation");
+      }
+
+      const profileCreatedEvent = profileData.receipt.events.find(
+        (e) => e.event === "ProfileCreated",
+      );
+      if (!profileCreatedEvent) {
+        throw new Error(
+          "ProfileCreated event not found in transaction receipt",
+        );
+      }
+
+      const newProfileId = profileCreatedEvent.args.profileId;
       setProfileId(newProfileId);
       console.log("Profile created with ID:", newProfileId);
 
       // Then, create the pool
-      const allAdmins = [address, ...additionalAdmins.map(admin => admin.walletAddress).filter(a => a)];
+      console.log("Creating pool...");
+      const allAdmins = [
+        address,
+        ...additionalAdmins
+          .map((admin) => admin.walletAddress)
+          .filter((a) => a),
+      ];
       const poolData = await createPool({
         args: [
           newProfileId,
@@ -68,14 +101,38 @@ const CreateProgramForm = () => {
           OP_TOKEN_ADDRESS,
           0, // Initial amount
           { protocol: 1, pointer: programName },
-          allAdmins
+          allAdmins,
         ],
       });
-      const newPoolId = poolData.receipt.events[0].args.poolId.toString();
+      console.log("Pool creation response:", poolData);
+
+      if (!poolData || !poolData.receipt || !poolData.receipt.events) {
+        throw new Error("Unexpected response structure from pool creation");
+      }
+
+      const poolCreatedEvent = poolData.receipt.events.find(
+        (e) => e.event === "PoolCreated",
+      );
+      if (!poolCreatedEvent) {
+        throw new Error("PoolCreated event not found in transaction receipt");
+      }
+
+      const newPoolId = poolCreatedEvent.args.poolId.toString();
       setPoolId(newPoolId);
       console.log("Pool created with ID:", newPoolId);
     } catch (err) {
       console.error("Failed to create profile or pool", err);
+      console.error(
+        "Error details:",
+        JSON.stringify(err, Object.getOwnPropertyNames(err)),
+      );
+      if (err.receipt) {
+        console.error("Transaction receipt:", err.receipt);
+      }
+      if (err.data) {
+        console.error("Error data:", err.data);
+      }
+      setError(`Error: ${err.message}`);
     }
   };
 
@@ -104,15 +161,15 @@ const CreateProgramForm = () => {
         <div className={styles.formGroup}>
           <h3>Additional Admins</h3>
           {additionalAdmins.map((admin, index) => (
-            <div key={index} style={{ display: 'flex', marginBottom: '10px' }}>
+            <div key={index} style={{ display: "flex", marginBottom: "10px" }}>
               <input
                 type="text"
                 value={admin.walletAddress}
                 onChange={(e) => handleAdminChange(index, e.target.value)}
                 placeholder="Wallet Address"
               />
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => handleRemoveAdmin(index)}
                 className={styles.closeButton}
               >
@@ -120,11 +177,11 @@ const CreateProgramForm = () => {
               </button>
             </div>
           ))}
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={handleAddAdmin}
             className={styles.submitButton}
-            style={{ marginTop: '10px', width: 'auto' }}
+            style={{ marginTop: "10px", width: "auto" }}
           >
             + Add Admin
           </button>
@@ -133,6 +190,7 @@ const CreateProgramForm = () => {
           Create Program
         </button>
       </form>
+      {error && <div className={styles.error}>{error}</div>}
       {poolId && (
         <div>
           <h3>Program Created!</h3>
