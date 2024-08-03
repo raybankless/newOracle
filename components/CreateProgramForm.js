@@ -66,24 +66,40 @@ const CreateProgramForm = () => {
           [], // no additional members
         ],
       });
-      console.log("Profile creation response:", profileData);
+      console.log("Profile creation full response:", profileData);
 
-      if (!profileData || !profileData.receipt || !profileData.receipt.events) {
+      if (!profileData || !profileData.receipt) {
         throw new Error("Unexpected response structure from profile creation");
       }
 
-      const profileCreatedEvent = profileData.receipt.events.find(
-        (e) => e.event === "ProfileCreated",
-      );
-      if (!profileCreatedEvent) {
-        throw new Error(
-          "ProfileCreated event not found in transaction receipt",
+      console.log("Profile creation full receipt:", profileData.receipt);
+
+      let newProfileId;
+      if (profileData.receipt.events) {
+        console.log("Profile creation events:", profileData.receipt.events);
+        const profileCreatedEvent = profileData.receipt.events.find(
+          (e) => e.event === "ProfileCreated",
         );
+        if (profileCreatedEvent) {
+          newProfileId = profileCreatedEvent.args.profileId;
+        }
       }
 
-      const newProfileId = profileCreatedEvent.args.profileId;
+      if (!newProfileId) {
+        console.warn(
+          "ProfileCreated event not found. Attempting to deduce profile ID...",
+        );
+        // Here you might implement alternative ways to get the profile ID
+        // For now, we'll throw an error
+        throw new Error("Could not determine new profile ID");
+      }
+
       setProfileId(newProfileId);
       console.log("Profile created with ID:", newProfileId);
+
+      // Fetch and log profile info
+      const profileInfo = await fetchProfileInfo(newProfileId);
+      console.log("Fetched profile info:", profileInfo);
 
       // Then, create the pool
       console.log("Creating pool...");
@@ -104,22 +120,47 @@ const CreateProgramForm = () => {
           allAdmins,
         ],
       });
-      console.log("Pool creation response:", poolData);
+      console.log("Pool creation full response:", poolData);
 
-      if (!poolData || !poolData.receipt || !poolData.receipt.events) {
+      if (!poolData || !poolData.receipt) {
         throw new Error("Unexpected response structure from pool creation");
       }
 
-      const poolCreatedEvent = poolData.receipt.events.find(
-        (e) => e.event === "PoolCreated",
-      );
-      if (!poolCreatedEvent) {
-        throw new Error("PoolCreated event not found in transaction receipt");
+      console.log("Pool creation full receipt:", poolData.receipt);
+
+      let newPoolId;
+      if (poolData.receipt.events) {
+        console.log("Pool creation events:", poolData.receipt.events);
+        const poolCreatedEvent = poolData.receipt.events.find(
+          (e) => e.event === "PoolCreated",
+        );
+        if (poolCreatedEvent) {
+          newPoolId = poolCreatedEvent.args.poolId.toString();
+        }
       }
 
-      const newPoolId = poolCreatedEvent.args.poolId.toString();
-      setPoolId(newPoolId);
-      console.log("Pool created with ID:", newPoolId);
+      if (!newPoolId) {
+        console.warn(
+          "PoolCreated event not found. Attempting to deduce pool ID...",
+        );
+        // Here you might implement alternative ways to get the pool ID
+        // For example, you could query the contract for the latest pool ID
+        // For now, we'll log a warning but continue
+        console.error("Could not determine new pool ID");
+      } else {
+        setPoolId(newPoolId);
+        console.log("Pool created with ID:", newPoolId);
+
+        // Fetch and log pool info
+        const poolInfo = await fetchPoolInfo(newPoolId);
+        console.log("Fetched pool info:", poolInfo);
+      }
+
+      // Log the transaction hash for reference
+      console.log(
+        "Pool creation transaction hash:",
+        poolData.receipt.transactionHash,
+      );
     } catch (err) {
       console.error("Failed to create profile or pool", err);
       console.error(
