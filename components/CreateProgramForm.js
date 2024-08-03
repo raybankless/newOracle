@@ -8,18 +8,12 @@ const REGISTRY_CONTRACT_ADDRESS = "0x3787d9680fc5EB34c5f5F75e793d93C98f07d952";
 const VAULT_STRATEGY_ADDRESS = "0xeED429051B60b77F0492435D6E3F6115d272fE93";
 const OP_TOKEN_ADDRESS = "0x4200000000000000000000000000000000000042";
 
-const ALLO_ABI = [
-  "function createPool(bytes32,address,bytes,address,uint256,(uint256,string),address[]) external returns (uint256)",
-];
-const REGISTRY_ABI = [
-  "function createProfile(uint256,string,(uint256,string),address,address[]) external returns (bytes32)",
-];
+const ALLO_ABI = ["function createPool(bytes32,address,bytes,address,uint256,(uint256,string),address[]) external returns (uint256)"];
+const REGISTRY_ABI = ["function createProfile(uint256,string,(uint256,string),address,address[]) external returns (bytes32)"];
 
 const CreateProgramForm = () => {
   const [programName, setProgramName] = useState("");
-  const [additionalAdmins, setAdditionalAdmins] = useState([
-    { walletAddress: "" },
-  ]);
+  const [additionalAdmins, setAdditionalAdmins] = useState([{ walletAddress: "" }]);
   const [poolId, setPoolId] = useState(null);
   const [profileId, setProfileId] = useState(null);
   const [error, setError] = useState(null);
@@ -42,45 +36,52 @@ const CreateProgramForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    console.log("Starting form submission...");
 
     try {
+      console.log("Connecting to Web3Provider...");
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       await provider.send("eth_requestAccounts", []);
       const signer = provider.getSigner();
       const signerAddress = await signer.getAddress();
+      console.log("Connected. Signer address:", signerAddress);
 
-      const registryContract = new ethers.Contract(
-        REGISTRY_CONTRACT_ADDRESS,
-        REGISTRY_ABI,
-        signer,
-      );
-      const alloContract = new ethers.Contract(
-        ALLO_CONTRACT_ADDRESS,
-        ALLO_ABI,
-        signer,
-      );
+      console.log("Creating contract instances...");
+      const registryContract = new ethers.Contract(REGISTRY_CONTRACT_ADDRESS, REGISTRY_ABI, signer);
+      const alloContract = new ethers.Contract(ALLO_CONTRACT_ADDRESS, ALLO_ABI, signer);
+      console.log("Contract instances created.");
 
       // Create profile
+      console.log("Creating profile...");
       const createProfileTx = await registryContract.createProfile(
         Date.now(), // nonce
         programName,
         [1, ""], // metadata
         signerAddress,
-        [], // no additional members
+        [] // no additional members
       );
+      console.log("Create profile transaction sent:", createProfileTx.hash);
+
       const createProfileReceipt = await createProfileTx.wait();
-      const profileCreatedEvent = createProfileReceipt.events.find(
-        (e) => e.event === "ProfileCreated",
-      );
+      console.log("Create profile transaction receipt:", createProfileReceipt);
+
+      const profileCreatedEvent = createProfileReceipt.events.find(e => e.event === "ProfileCreated");
+      if (!profileCreatedEvent) {
+        throw new Error("ProfileCreated event not found in transaction receipt");
+      }
       const newProfileId = profileCreatedEvent.args.profileId;
       setProfileId(newProfileId);
       console.log("Profile created with ID:", newProfileId);
 
       // Create pool
+      console.log("Creating pool...");
       const validAdmins = additionalAdmins
-        .map((admin) => admin.walletAddress)
-        .filter((address) => ethers.utils.isAddress(address));
+        .map(admin => admin.walletAddress)
+        .filter(address => ethers.utils.isAddress(address));
+      console.log("Valid additional admins:", validAdmins);
+
       const allAdmins = [signerAddress, ...validAdmins];
+      console.log("All admins (including creator):", allAdmins);
 
       const createPoolTx = await alloContract.createPool(
         newProfileId,
@@ -89,17 +90,30 @@ const CreateProgramForm = () => {
         OP_TOKEN_ADDRESS,
         0, // Initial amount
         [1, programName], // metadata
-        allAdmins,
+        allAdmins
       );
+      console.log("Create pool transaction sent:", createPoolTx.hash);
+
       const createPoolReceipt = await createPoolTx.wait();
-      const poolCreatedEvent = createPoolReceipt.events.find(
-        (e) => e.event === "PoolCreated",
-      );
+      console.log("Create pool transaction receipt:", createPoolReceipt);
+
+      const poolCreatedEvent = createPoolReceipt.events.find(e => e.event === "PoolCreated");
+      if (!poolCreatedEvent) {
+        throw new Error("PoolCreated event not found in transaction receipt");
+      }
       const newPoolId = poolCreatedEvent.args.poolId.toString();
       setPoolId(newPoolId);
       console.log("Pool created with ID:", newPoolId);
+
     } catch (err) {
       console.error("Failed to create profile or pool", err);
+      console.error("Error details:", JSON.stringify(err, Object.getOwnPropertyNames(err)));
+      if (err.receipt) {
+        console.error("Transaction receipt:", err.receipt);
+      }
+      if (err.data) {
+        console.error("Error data:", err.data);
+      }
       setError(`Error: ${err.message}`);
     }
   };
