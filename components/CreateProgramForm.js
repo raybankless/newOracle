@@ -1,5 +1,5 @@
 // components/CreateProgramForm.js
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { ethers } from "ethers";
 import styles from "../styles/CreateEventModal.module.css";
 
@@ -8,41 +8,21 @@ const REGISTRY_CONTRACT_ADDRESS = "0x3787d9680fc5EB34c5f5F75e793d93C98f07d952";
 const VAULT_STRATEGY_ADDRESS = "0xeED429051B60b77F0492435D6E3F6115d272fE93";
 const OP_TOKEN_ADDRESS = "0x4200000000000000000000000000000000000042";
 
+const ALLO_ABI = [
+  "function createPool(bytes32,address,bytes,address,uint256,(uint256,string),address[]) external returns (uint256)",
+];
+const REGISTRY_ABI = [
+  "function createProfile(uint256,string,(uint256,string),address,address[]) external returns (bytes32)",
+];
+
 const CreateProgramForm = () => {
   const [programName, setProgramName] = useState("");
-  const [additionalAdmins, setAdditionalAdmins] = useState([{ walletAddress: "" }]);
+  const [additionalAdmins, setAdditionalAdmins] = useState([
+    { walletAddress: "" },
+  ]);
   const [poolId, setPoolId] = useState(null);
   const [profileId, setProfileId] = useState(null);
   const [error, setError] = useState(null);
-  const [signer, setSigner] = useState(null);
-  const [alloContract, setAlloContract] = useState(null);
-  const [registryContract, setRegistryContract] = useState(null);
-
-  useEffect(() => {
-    const initializeEthers = async () => {
-      if (typeof window.ethereum !== 'undefined') {
-        try {
-          await window.ethereum.request({ method: 'eth_requestAccounts' });
-          const provider = new ethers.providers.Web3Provider(window.ethereum);
-          const signer = provider.getSigner();
-          setSigner(signer);
-
-          const alloABI = ["function createPool(bytes32,address,bytes,address,uint256,(uint256,string),address[]) external returns (uint256)"];
-          const registryABI = ["function createProfile(uint256,string,(uint256,string),address,address[]) external returns (bytes32)"];
-
-          setAlloContract(new ethers.Contract(ALLO_CONTRACT_ADDRESS, alloABI, signer));
-          setRegistryContract(new ethers.Contract(REGISTRY_CONTRACT_ADDRESS, registryABI, signer));
-        } catch (error) {
-          console.error("Failed to connect to MetaMask", error);
-          setError("Failed to connect to MetaMask. Please make sure it's installed and unlocked.");
-        }
-      } else {
-        setError("MetaMask is not installed. Please install it to use this feature.");
-      }
-    };
-
-    initializeEthers();
-  }, []);
 
   const handleAddAdmin = () => {
     setAdditionalAdmins([...additionalAdmins, { walletAddress: "" }]);
@@ -59,65 +39,63 @@ const CreateProgramForm = () => {
     setAdditionalAdmins(newAdmins);
   };
 
-  const createProfile = async () => {
-    if (!registryContract) {
-      throw new Error("Registry contract is not initialized");
-    }
-
-    const tx = await registryContract.createProfile(
-      Date.now(), // nonce
-      programName,
-      [1, ""], // metadata
-      await signer.getAddress(),
-      [] // no additional members
-    );
-
-    const receipt = await tx.wait();
-    const event = receipt.events.find(e => e.event === "ProfileCreated");
-    return event.args.profileId;
-  };
-
-  const createPoolWithAllo = async (profileId) => {
-    if (!alloContract) {
-      throw new Error("Allo contract is not initialized");
-    }
-
-    const validAdmins = additionalAdmins
-      .map(admin => admin.walletAddress)
-      .filter(address => ethers.utils.isAddress(address));
-
-    const allAdmins = [await signer.getAddress(), ...validAdmins];
-
-    const tx = await alloContract.createPool(
-      profileId,
-      VAULT_STRATEGY_ADDRESS,
-      "0x", // Replace with actual initialization data if needed
-      OP_TOKEN_ADDRESS,
-      0, // Initial amount
-      [1, programName], // metadata
-      allAdmins
-    );
-
-    const receipt = await tx.wait();
-    const event = receipt.events.find(e => e.event === "PoolCreated");
-    return event.args.poolId.toString();
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
 
-    if (!signer) {
-      setError("No wallet connected. Please connect your wallet.");
-      return;
-    }
-
     try {
-      const newProfileId = await createProfile();
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      const signer = provider.getSigner();
+      const signerAddress = await signer.getAddress();
+
+      const registryContract = new ethers.Contract(
+        REGISTRY_CONTRACT_ADDRESS,
+        REGISTRY_ABI,
+        signer,
+      );
+      const alloContract = new ethers.Contract(
+        ALLO_CONTRACT_ADDRESS,
+        ALLO_ABI,
+        signer,
+      );
+
+      // Create profile
+      const createProfileTx = await registryContract.createProfile(
+        Date.now(), // nonce
+        programName,
+        [1, ""], // metadata
+        signerAddress,
+        [], // no additional members
+      );
+      const createProfileReceipt = await createProfileTx.wait();
+      const profileCreatedEvent = createProfileReceipt.events.find(
+        (e) => e.event === "ProfileCreated",
+      );
+      const newProfileId = profileCreatedEvent.args.profileId;
       setProfileId(newProfileId);
       console.log("Profile created with ID:", newProfileId);
 
-      const newPoolId = await createPoolWithAllo(newProfileId);
+      // Create pool
+      const validAdmins = additionalAdmins
+        .map((admin) => admin.walletAddress)
+        .filter((address) => ethers.utils.isAddress(address));
+      const allAdmins = [signerAddress, ...validAdmins];
+
+      const createPoolTx = await alloContract.createPool(
+        newProfileId,
+        VAULT_STRATEGY_ADDRESS,
+        "0x", // Replace with actual initialization data if needed
+        OP_TOKEN_ADDRESS,
+        0, // Initial amount
+        [1, programName], // metadata
+        allAdmins,
+      );
+      const createPoolReceipt = await createPoolTx.wait();
+      const poolCreatedEvent = createPoolReceipt.events.find(
+        (e) => e.event === "PoolCreated",
+      );
+      const newPoolId = poolCreatedEvent.args.poolId.toString();
       setPoolId(newPoolId);
       console.log("Pool created with ID:", newPoolId);
     } catch (err) {
