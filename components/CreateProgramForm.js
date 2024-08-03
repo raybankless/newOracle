@@ -1,5 +1,5 @@
 // components/CreateProgramForm.js
-import React, { useState, useEffect } from "react";
+import React, { useState } from 'react';
 import { useAddress, useContract, useContractWrite } from "@thirdweb-dev/react";
 import styles from "../styles/CreateEventModal.module.css";
 
@@ -9,10 +9,8 @@ const VAULT_STRATEGY_ADDRESS = "0xeED429051B60b77F0492435D6E3F6115d272fE93";
 const OP_TOKEN_ADDRESS = "0x4200000000000000000000000000000000000042";
 
 const CreateProgramForm = () => {
-  const [programName, setProgramName] = useState("");
-  const [additionalAdmins, setAdditionalAdmins] = useState([
-    { walletAddress: "" },
-  ]);
+  const [programName, setProgramName] = useState('');
+  const [additionalAdmins, setAdditionalAdmins] = useState([{ walletAddress: '' }]);
   const [poolId, setPoolId] = useState(null);
   const [profileId, setProfileId] = useState(null);
   const [error, setError] = useState(null);
@@ -21,14 +19,28 @@ const CreateProgramForm = () => {
   const { contract: alloContract } = useContract(ALLO_CONTRACT_ADDRESS);
   const { contract: registryContract } = useContract(REGISTRY_CONTRACT_ADDRESS);
 
-  const { mutateAsync: createProfile } = useContractWrite(
-    registryContract,
-    "createProfile",
-  );
-  const { mutateAsync: createPool } = useContractWrite(
-    alloContract,
-    "createPool",
-  );
+  const { mutateAsync: createProfile } = useContractWrite(registryContract, "createProfile");
+  const { mutateAsync: createPool } = useContractWrite(alloContract, "createPool");
+
+  const fetchProfileInfo = async (profileId) => {
+    try {
+      const profileInfo = await registryContract.call("getProfileById", [profileId]);
+      console.log("Profile Info:", profileInfo);
+      return profileInfo;
+    } catch (error) {
+      console.error("Error fetching profile info:", error);
+    }
+  };
+
+  const fetchPoolInfo = async (poolId) => {
+    try {
+      const poolInfo = await alloContract.call("getPool", [poolId]);
+      console.log("Pool Info:", poolInfo);
+      return poolInfo;
+    } catch (error) {
+      console.error("Error fetching pool info:", error);
+    }
+  };
 
   const handleAddAdmin = () => {
     setAdditionalAdmins([...additionalAdmins, { walletAddress: "" }]);
@@ -63,7 +75,7 @@ const CreateProgramForm = () => {
           programName,
           { protocol: 1, pointer: "" }, // metadata
           address,
-          [], // no additional members
+          [] // no additional members
         ],
       });
       console.log("Profile creation full response:", profileData);
@@ -77,18 +89,14 @@ const CreateProgramForm = () => {
       let newProfileId;
       if (profileData.receipt.events) {
         console.log("Profile creation events:", profileData.receipt.events);
-        const profileCreatedEvent = profileData.receipt.events.find(
-          (e) => e.event === "ProfileCreated",
-        );
+        const profileCreatedEvent = profileData.receipt.events.find(e => e.event === "ProfileCreated");
         if (profileCreatedEvent) {
           newProfileId = profileCreatedEvent.args.profileId;
         }
       }
 
       if (!newProfileId) {
-        console.warn(
-          "ProfileCreated event not found. Attempting to deduce profile ID...",
-        );
+        console.warn("ProfileCreated event not found. Attempting to deduce profile ID...");
         // Here you might implement alternative ways to get the profile ID
         // For now, we'll throw an error
         throw new Error("Could not determine new profile ID");
@@ -103,12 +111,7 @@ const CreateProgramForm = () => {
 
       // Then, create the pool
       console.log("Creating pool...");
-      const allAdmins = [
-        address,
-        ...additionalAdmins
-          .map((admin) => admin.walletAddress)
-          .filter((a) => a),
-      ];
+      const allAdmins = [address, ...additionalAdmins.map(admin => admin.walletAddress).filter(a => a)];
       const poolData = await createPool({
         args: [
           newProfileId,
@@ -117,7 +120,7 @@ const CreateProgramForm = () => {
           OP_TOKEN_ADDRESS,
           0, // Initial amount
           { protocol: 1, pointer: programName },
-          allAdmins,
+          allAdmins
         ],
       });
       console.log("Pool creation full response:", poolData);
@@ -131,18 +134,14 @@ const CreateProgramForm = () => {
       let newPoolId;
       if (poolData.receipt.events) {
         console.log("Pool creation events:", poolData.receipt.events);
-        const poolCreatedEvent = poolData.receipt.events.find(
-          (e) => e.event === "PoolCreated",
-        );
+        const poolCreatedEvent = poolData.receipt.events.find(e => e.event === "PoolCreated");
         if (poolCreatedEvent) {
           newPoolId = poolCreatedEvent.args.poolId.toString();
         }
       }
 
       if (!newPoolId) {
-        console.warn(
-          "PoolCreated event not found. Attempting to deduce pool ID...",
-        );
+        console.warn("PoolCreated event not found. Attempting to deduce pool ID...");
         // Here you might implement alternative ways to get the pool ID
         // For example, you could query the contract for the latest pool ID
         // For now, we'll log a warning but continue
@@ -157,16 +156,11 @@ const CreateProgramForm = () => {
       }
 
       // Log the transaction hash for reference
-      console.log(
-        "Pool creation transaction hash:",
-        poolData.receipt.transactionHash,
-      );
+      console.log("Pool creation transaction hash:", poolData.receipt.transactionHash);
+
     } catch (err) {
       console.error("Failed to create profile or pool", err);
-      console.error(
-        "Error details:",
-        JSON.stringify(err, Object.getOwnPropertyNames(err)),
-      );
+      console.error("Error details:", JSON.stringify(err, Object.getOwnPropertyNames(err)));
       if (err.receipt) {
         console.error("Transaction receipt:", err.receipt);
       }
@@ -176,6 +170,7 @@ const CreateProgramForm = () => {
       setError(`Error: ${err.message}`);
     }
   };
+
 
   useEffect(() => {
     if (poolId) {
