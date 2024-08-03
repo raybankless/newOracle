@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
 
-const CONTRACT_ADDRESS = "0xe0871238de109E0Af23aF651786d8484c0b0d656";
+const CONTRACT_ADDRESS = "0xf5f35867AEccF350B55b90E41044F47428950920";
 const INFURA_ID = "6561b6462f824490b0bec934ada8dd65";
 
 const ABI = [
