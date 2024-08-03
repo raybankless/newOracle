@@ -1,5 +1,5 @@
 // components/CreateProgramForm.js
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAddress, useContract, useContractWrite } from "@thirdweb-dev/react";
 import styles from "../styles/CreateEventModal.module.css";
 
@@ -14,7 +14,7 @@ const CreateProgramForm = () => {
   const [poolId, setPoolId] = useState(null);
   const [profileId, setProfileId] = useState(null);
   const [error, setError] = useState(null);
-  const address = useAddress();
+  const address = "0xBd55b361700c3349794aF68879B8a9E0921640Ed";
 
   const { contract: alloContract } = useContract(ALLO_CONTRACT_ADDRESS);
   const { contract: registryContract } = useContract(REGISTRY_CONTRACT_ADDRESS);
@@ -170,15 +170,6 @@ const CreateProgramForm = () => {
       setError(`Error: ${err.message}`);
     }
   };
-
-
-  useEffect(() => {
-    if (poolId) {
-      // Fetch and display pool information
-      console.log("Pool created with ID:", poolId);
-      // Here you would typically fetch more details about the pool
-    }
-  }, [poolId]);
 
   return (
     <div className={styles.modalContent}>
