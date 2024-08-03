@@ -1,5 +1,5 @@
 // components/CreateProgramForm.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAddress, useContract, useContractWrite } from "@thirdweb-dev/react";
 import styles from "../styles/CreateEventModal.module.css";
 
