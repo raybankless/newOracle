@@ -120,7 +120,7 @@ const CreateProgramForm = () => {
           OP_TOKEN_ADDRESS,
           0, // Initial amount
           { protocol: 1, pointer: programName },
-          allAdmins
+          address
         ],
       });
       console.log("Pool creation full response:", poolData);
