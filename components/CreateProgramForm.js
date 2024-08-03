@@ -1,6 +1,6 @@
 // components/CreateProgramForm.js
-import React, { useState } from "react";
-import { useAddress, useContract, useContractWrite } from "@thirdweb-dev/react";
+import React, { useState, useEffect } from "react";
+import { ethers } from "ethers";
 import styles from "../styles/CreateEventModal.module.css";
 
 const ALLO_CONTRACT_ADDRESS = "0xf5f35867AEccF350B55b90E41044F47428950920";
@@ -10,47 +10,39 @@ const OP_TOKEN_ADDRESS = "0x4200000000000000000000000000000000000042";
 
 const CreateProgramForm = () => {
   const [programName, setProgramName] = useState("");
-  const [additionalAdmins, setAdditionalAdmins] = useState([
-    { walletAddress: "" },
-  ]);
+  const [additionalAdmins, setAdditionalAdmins] = useState([{ walletAddress: "" }]);
   const [poolId, setPoolId] = useState(null);
   const [profileId, setProfileId] = useState(null);
   const [error, setError] = useState(null);
-  const address = "0x1CC81345720fBE53851F96607068578F45bBF021";
+  const [signer, setSigner] = useState(null);
+  const [alloContract, setAlloContract] = useState(null);
+  const [registryContract, setRegistryContract] = useState(null);
 
-  const { contract: alloContract } = useContract(ALLO_CONTRACT_ADDRESS);
-  const { contract: registryContract } = useContract(REGISTRY_CONTRACT_ADDRESS);
+  useEffect(() => {
+    const initializeEthers = async () => {
+      if (typeof window.ethereum !== 'undefined') {
+        try {
+          await window.ethereum.request({ method: 'eth_requestAccounts' });
+          const provider = new ethers.providers.Web3Provider(window.ethereum);
+          const signer = provider.getSigner();
+          setSigner(signer);
 
-  const { mutateAsync: createProfile } = useContractWrite(
-    registryContract,
-    "createProfile",
-  );
-  const { mutateAsync: createPool } = useContractWrite(
-    alloContract,
-    "createPool",
-  );
+          const alloABI = ["function createPool(bytes32,address,bytes,address,uint256,(uint256,string),address[]) external returns (uint256)"];
+          const registryABI = ["function createProfile(uint256,string,(uint256,string),address,address[]) external returns (bytes32)"];
 
-  const fetchProfileInfo = async (profileId) => {
-    try {
-      const profileInfo = await registryContract.call("getProfileById", [
-        profileId,
-      ]);
-      console.log("Profile Info:", profileInfo);
-      return profileInfo;
-    } catch (error) {
-      console.error("Error fetching profile info:", error);
-    }
-  };
+          setAlloContract(new ethers.Contract(ALLO_CONTRACT_ADDRESS, alloABI, signer));
+          setRegistryContract(new ethers.Contract(REGISTRY_CONTRACT_ADDRESS, registryABI, signer));
+        } catch (error) {
+          console.error("Failed to connect to MetaMask", error);
+          setError("Failed to connect to MetaMask. Please make sure it's installed and unlocked.");
+        }
+      } else {
+        setError("MetaMask is not installed. Please install it to use this feature.");
+      }
+    };
 
-  const fetchPoolInfo = async (poolId) => {
-    try {
-      const poolInfo = await alloContract.call("getPool", [poolId]);
-      console.log("Pool Info:", poolInfo);
-      return poolInfo;
-    } catch (error) {
-      console.error("Error fetching pool info:", error);
-    }
-  };
+    initializeEthers();
+  }, []);
 
   const handleAddAdmin = () => {
     setAdditionalAdmins([...additionalAdmins, { walletAddress: "" }]);
@@ -67,140 +59,69 @@ const CreateProgramForm = () => {
     setAdditionalAdmins(newAdmins);
   };
 
+  const createProfile = async () => {
+    if (!registryContract) {
+      throw new Error("Registry contract is not initialized");
+    }
+
+    const tx = await registryContract.createProfile(
+      Date.now(), // nonce
+      programName,
+      [1, ""], // metadata
+      await signer.getAddress(),
+      [] // no additional members
+    );
+
+    const receipt = await tx.wait();
+    const event = receipt.events.find(e => e.event === "ProfileCreated");
+    return event.args.profileId;
+  };
+
+  const createPoolWithAllo = async (profileId) => {
+    if (!alloContract) {
+      throw new Error("Allo contract is not initialized");
+    }
+
+    const validAdmins = additionalAdmins
+      .map(admin => admin.walletAddress)
+      .filter(address => ethers.utils.isAddress(address));
+
+    const allAdmins = [await signer.getAddress(), ...validAdmins];
+
+    const tx = await alloContract.createPool(
+      profileId,
+      VAULT_STRATEGY_ADDRESS,
+      "0x", // Replace with actual initialization data if needed
+      OP_TOKEN_ADDRESS,
+      0, // Initial amount
+      [1, programName], // metadata
+      allAdmins
+    );
+
+    const receipt = await tx.wait();
+    const event = receipt.events.find(e => e.event === "PoolCreated");
+    return event.args.poolId.toString();
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-    if (!address) {
-      console.error("No wallet connected");
+
+    if (!signer) {
       setError("No wallet connected. Please connect your wallet.");
       return;
     }
 
     try {
-      // First, create a profile
-      console.log("Creating profile...");
-      const profileData = await createProfile({
-        args: [
-          Date.now(), // nonce
-          programName,
-          { protocol: 1, pointer: "" }, // metadata
-          address,
-          [], // no additional members
-        ],
-      });
-      console.log("Profile creation full response:", profileData);
-
-      if (!profileData || !profileData.receipt) {
-        throw new Error("Unexpected response structure from profile creation");
-      }
-
-      console.log("Profile creation full receipt:", profileData.receipt);
-
-      let newProfileId;
-      if (profileData.receipt.events) {
-        console.log("Profile creation events:", profileData.receipt.events);
-        const profileCreatedEvent = profileData.receipt.events.find(
-          (e) => e.event === "ProfileCreated",
-        );
-        if (profileCreatedEvent) {
-          newProfileId = profileCreatedEvent.args.profileId;
-        }
-      }
-
-      if (!newProfileId) {
-        console.warn(
-          "ProfileCreated event not found. Attempting to deduce profile ID...",
-        );
-        // Here you might implement alternative ways to get the profile ID
-        // For now, we'll throw an error
-        throw new Error("Could not determine new profile ID");
-      }
-
+      const newProfileId = await createProfile();
       setProfileId(newProfileId);
       console.log("Profile created with ID:", newProfileId);
 
-      // Fetch and log profile info
-      const profileInfo = await fetchProfileInfo(newProfileId);
-      console.log("Fetched profile info:", profileInfo);
-
-      // Then, create the pool
-      console.log("Creating pool...");
-      const allAdmins = [];
-      if (!additionalAdmins) {
-        allAdmins = [address];
-      } else {
-        allAdmins = [
-          address,
-          ...additionalAdmins
-            .map((admin) => admin.walletAddress)
-            .filter((a) => a),
-        ];
-      }
-
-      const poolData = await createPool({
-        args: [
-          newProfileId,
-          VAULT_STRATEGY_ADDRESS,
-          "0x", // Replace with actual initialization data if needed
-          OP_TOKEN_ADDRESS,
-          0, // Initial amount
-          { protocol: 1, pointer: programName },
-          allAdmins,
-        ],
-      });
-      console.log("Pool creation full response:", poolData);
-
-      if (!poolData || !poolData.receipt) {
-        throw new Error("Unexpected response structure from pool creation");
-      }
-
-      console.log("Pool creation full receipt:", poolData.receipt);
-
-      let newPoolId;
-      if (poolData.receipt.events) {
-        console.log("Pool creation events:", poolData.receipt.events);
-        const poolCreatedEvent = poolData.receipt.events.find(
-          (e) => e.event === "PoolCreated",
-        );
-        if (poolCreatedEvent) {
-          newPoolId = poolCreatedEvent.args.poolId.toString();
-        }
-      }
-
-      if (!newPoolId) {
-        console.warn(
-          "PoolCreated event not found. Attempting to deduce pool ID...",
-        );
-        // Here you might implement alternative ways to get the pool ID
-        // For example, you could query the contract for the latest pool ID
-        // For now, we'll log a warning but continue
-        console.error("Could not determine new pool ID");
-      } else {
-        setPoolId(newPoolId);
-        console.log("Pool created with ID:", newPoolId);
-
-        // Fetch and log pool info
-        const poolInfo = await fetchPoolInfo(newPoolId);
-        console.log("Fetched pool info:", poolInfo);
-      }
-
-      // Log the transaction hash for reference
-      console.log(
-        "Pool creation transaction hash:",
-        poolData.receipt.transactionHash,
-      );
+      const newPoolId = await createPoolWithAllo(newProfileId);
+      setPoolId(newPoolId);
+      console.log("Pool created with ID:", newPoolId);
     } catch (err) {
       console.error("Failed to create profile or pool", err);
-      console.error(
-        "Error details:",
-        JSON.stringify(err, Object.getOwnPropertyNames(err)),
-      );
-      if (err.receipt) {
-        console.error("Transaction receipt:", err.receipt);
-      }
-      if (err.data) {
-        console.error("Error data:", err.data);
-      }
       setError(`Error: ${err.message}`);
     }
   };
