@@ -18,19 +18,29 @@ const CreateProgramForm = () => {
   const [profileId, setProfileId] = useState(null);
   const [error, setError] = useState(null);
 
-  const handleAddAdmin = () => {
-    setAdditionalAdmins([...additionalAdmins, { walletAddress: "" }]);
-  };
+  // ... (handleAddAdmin, handleAdminChange, handleRemoveAdmin remain the same)
 
-  const handleAdminChange = (index, value) => {
-    const newAdmins = [...additionalAdmins];
-    newAdmins[index].walletAddress = value;
-    setAdditionalAdmins(newAdmins);
-  };
+  const createProfileForAddress = async (registryContract, address, name) => {
+    console.log(`Creating profile for address: ${address}`);
+    const createProfileTx = await registryContract.createProfile(
+      Date.now(), // nonce
+      name,
+      [1, ""], // metadata
+      address,
+      [] // no additional members
+    );
+    console.log(`Create profile transaction sent for ${address}:`, createProfileTx.hash);
 
-  const handleRemoveAdmin = (index) => {
-    const newAdmins = additionalAdmins.filter((_, i) => i !== index);
-    setAdditionalAdmins(newAdmins);
+    const createProfileReceipt = await createProfileTx.wait();
+    console.log(`Create profile transaction receipt for ${address}:`, createProfileReceipt);
+
+    const profileCreatedEvent = createProfileReceipt.events.find(e => e.event === "ProfileCreated");
+    if (!profileCreatedEvent) {
+      throw new Error(`ProfileCreated event not found in transaction receipt for ${address}`);
+    }
+    const newProfileId = profileCreatedEvent.args.profileId;
+    console.log(`Profile created for ${address} with ID:`, newProfileId);
+    return newProfileId;
   };
 
   const handleSubmit = async (e) => {
@@ -51,40 +61,31 @@ const CreateProgramForm = () => {
       const alloContract = new ethers.Contract(ALLO_CONTRACT_ADDRESS, ALLO_ABI, signer);
       console.log("Contract instances created.");
 
-      // Create profile
-      console.log("Creating profile...");
-      const createProfileTx = await registryContract.createProfile(
-        Date.now(), // nonce
-        programName,
-        [1, ""], // metadata
-        signerAddress,
-        [] // no additional members
-      );
-      console.log("Create profile transaction sent:", createProfileTx.hash);
+      // Create profile for the main program
+      const mainProfileId = await createProfileForAddress(registryContract, signerAddress, programName);
+      setProfileId(mainProfileId);
 
-      const createProfileReceipt = await createProfileTx.wait();
-      console.log("Create profile transaction receipt:", createProfileReceipt);
-
-      const profileCreatedEvent = createProfileReceipt.events.find(e => e.event === "ProfileCreated");
-      if (!profileCreatedEvent) {
-        throw new Error("ProfileCreated event not found in transaction receipt");
-      }
-      const newProfileId = profileCreatedEvent.args.profileId;
-      setProfileId(newProfileId);
-      console.log("Profile created with ID:", newProfileId);
-
-      // Create pool
-      console.log("Creating pool...");
+      // Create profiles for additional admins
       const validAdmins = additionalAdmins
         .map(admin => admin.walletAddress)
         .filter(address => ethers.utils.isAddress(address));
       console.log("Valid additional admins:", validAdmins);
 
+      const adminProfileIds = await Promise.all(
+        validAdmins.map((adminAddress, index) => 
+          createProfileForAddress(registryContract, adminAddress, `${programName} Admin ${index + 1}`)
+        )
+      );
+
+      console.log("Admin profile IDs:", adminProfileIds);
+
+      // Create pool
+      console.log("Creating pool...");
       const allAdmins = [signerAddress, ...validAdmins];
       console.log("All admins (including creator):", allAdmins);
 
       const createPoolTx = await alloContract.createPool(
-        newProfileId,
+        mainProfileId,
         VAULT_STRATEGY_ADDRESS,
         "0x", // Replace with actual initialization data if needed
         OP_TOKEN_ADDRESS,
