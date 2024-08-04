@@ -121,10 +121,10 @@ const Allo: React.FC = () => {
       const initData = "0x"; // Replace with appropriate initData
       const token = ethers.constants.AddressZero; // Replace with appropriate token address
       const amount = ethers.utils.parseEther("1"); // Replace with appropriate amount
-      const metadata = {
-       protocol: ethers.utils.parseUnits("1", 0),
-        pointer: "QmYwAPJzv5CZsnAzt8auVZRnLRG3FGMyz5bnF2C6UrQ1zK",
-      };
+      const metadata = [
+        ethers.BigNumber.from(1),
+        "QmYwAPJzv5CZsnAzt8auVZRnLRG3FGMyz5bnF2C6UrQ1zK"
+      ];
       const managers = [walletAddress]; // Replace with appropriate managers
 
       console.log("Creating pool with the following parameters:");
