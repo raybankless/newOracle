@@ -2,9 +2,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { NextPage } from "next";
-import { useAddress, ConnectEmbed } from "@thirdweb-dev/react";
+import { useAddress, ConnectEmbed, lightTheme } from "@thirdweb-dev/react";
 import styles from "../styles/Home.module.css";
-import { lightTheme } from "thirdweb/react";
+
 
 const Home: NextPage = () => {
   const router = useRouter();
