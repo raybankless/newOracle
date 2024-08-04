@@ -30,7 +30,7 @@
     "react": "^18.2",
     "react-dom": "^18.2",
     "react-fontawesome": "^1.7.1",
-    "thirdweb": "^1.0.0-beta-75bec3710151c4255c8314e3ce8dd366265b6c58-20240317031400",
+    "thirdweb": "^5.43.2",
     "viem": "^2.8.13"
   },
   "devDependencies": {

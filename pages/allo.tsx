@@ -1,188 +1,186 @@
 // pages/allo.tsx
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
+import { createThirdwebClient } from "thirdweb";
+import { createWallet, injectedProvider } from "thirdweb/wallets";
 import { ethers } from "ethers";
-import { alloInteraction } from "../components/AlloContractInteraction.js";
-import { useConnect } from "thirdweb/react";
-import { createWallet } from "thirdweb/wallets";
+import { alloInteraction } from "../components/AlloContractInteraction";
+import styles from "../styles/Allo.module.css";
 
-const Allo = () => {
-  const [percentFee, setPercentFee] = useState("");
-  const [baseFee, setBaseFee] = useState("");
-  const [treasury, setTreasury] = useState("");
-  const [newPercentFee, setNewPercentFee] = useState("");
-  const [error, setError] = useState(null);
-  const [allo, setAllo] = useState(null);
-  const [newBaseFee, setNewBaseFee] = useState("");
-  const [newTreasury, setNewTreasury] = useState("");
-  const [isConnected, setIsConnected] = useState(false);
+const client = createThirdwebClient({ clientId: "22f2a1f2653b1f091455a59z951c2ecca" });
 
-  const { connect, isConnecting, connectionError } = useConnect();
+const ALLO_CONTRACT_ADDRESS = "0xf5f35867AEccF350B55b90E41044F47428950920"; // Replace with your contract address
+const STRATEGY_ADDRESS = "0xeED429051B60b77F0492435D6E3F6115d272fE93"; // Update with your strategy address
+
+const Allo: React.FC = () => {
+  const [walletAddress, setWalletAddress] = useState<string>("");
+  const [isConnecting, setIsConnecting] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
+  const [percentFee, setPercentFee] = useState<string>("");
+  const [baseFee, setBaseFee] = useState<string>("");
+  const [treasury, setTreasury] = useState<string>("");
+  const [newPercentFee, setNewPercentFee] = useState<string>("");
+  const [newBaseFee, setNewBaseFee] = useState<string>("");
+  const [newTreasury, setNewTreasury] = useState<string>("");
 
   const handleConnect = async () => {
     try {
-      console.log("Attempting to connect to MetaMask...");
-      await connect(async () => {
-        const wallet = createWallet("io.metamask");
-        await wallet.connect();
-        console.log("Successfully connected to MetaMask");
-        setIsConnected(true);
-        return wallet;
-      });
-    } catch (err) {
+      setIsConnecting(true);
+      const wallet = createWallet("io.metamask");
+      if (injectedProvider("io.metamask")) {
+        const account = await wallet.connect({ client });
+        setWalletAddress(account.address);
+        console.log("Connected to MetaMask:", account);
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const allo = alloInteraction(signer);
+        fetchContractInfo(allo);
+      } else {
+        throw new Error("MetaMask is not installed");
+      }
+    } catch (err: any) {
       console.error("MetaMask connection failed:", err);
-      setError(`MetaMask connection failed: ${err.message}`);
+      setError(err.message || "An unknown error occurred");
+    } finally {
+      setIsConnecting(false);
     }
   };
 
-  useEffect(() => {
-    const initializeAllo = async () => {
-      if (typeof window.ethereum !== "undefined" && isConnected) {
-        console.log("Initializing Allo interaction...");
-        try {
-          const provider = new ethers.providers.Web3Provider(window.ethereum);
-          const alloInstance = alloInteraction(provider);
-          setAllo(alloInstance);
-          await fetchContractInfo(alloInstance);
-          console.log("Allo interaction initialized successfully");
-        } catch (err) {
-          console.error("Failed to initialize Allo interaction:", err);
-          setError(`Failed to initialize Allo: ${err.message}`);
-        }
-      } else if (isConnected) {
-        console.error("MetaMask not detected");
-        setError("Please install MetaMask to use this dApp");
-      }
-    };
-
-    if (isConnected) {
-      initializeAllo();
-    }
-  }, [isConnected]);
-
-  const fetchContractInfo = async (alloInstance) => {
+  const fetchContractInfo = async (allo: ReturnType<typeof alloInteraction>) => {
     try {
       console.log("Fetching contract info...");
-      const percentFeeValue = await alloInstance.getPercentFee();
-      const baseFeeValue = await alloInstance.getBaseFee();
-      const treasuryAddress = await alloInstance.getTreasury();
+      const percentFeeValue = await allo.getPercentFee();
+      const baseFeeValue = await allo.getBaseFee();
+      const treasuryAddress = await allo.getTreasury();
 
-      setPercentFee(ethers.utils.formatUnits(percentFeeValue, 18));
+      setPercentFee(ethers.utils.formatUnits(percentFeeValue, 16));
       setBaseFee(ethers.utils.formatEther(baseFeeValue));
       setTreasury(treasuryAddress);
-
       console.log("Contract info fetched successfully");
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to fetch contract info:", err);
       setError(`Failed to fetch contract info: ${err.message}`);
     }
   };
 
   const handleUpdatePercentFee = async () => {
-    if (!allo) {
-      console.error("Allo interaction not initialized");
-      setError("Allo interaction not initialized");
-      return;
-    }
-
     try {
-      console.log("Updating percent fee...");
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
       const signer = provider.getSigner();
-
-      const percentFeeInWei = ethers.utils.parseUnits(newPercentFee, 16);
-      const tx = await allo.updatePercentFee(signer, percentFeeInWei);
-      console.log("Update percent fee transaction sent:", tx.hash);
+      const allo = alloInteraction(signer);
+      const tx = await allo.updatePercentFee(signer, ethers.utils.parseUnits(newPercentFee, 16));
       await tx.wait();
-      console.log("Update percent fee transaction confirmed");
-
-      const updatedPercentFee = await allo.getPercentFee();
-      setPercentFee(ethers.utils.formatUnits(updatedPercentFee, 18));
       setNewPercentFee("");
+      fetchContractInfo(allo);
       console.log("Percent fee updated successfully");
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to update percent fee:", err);
       setError(`Failed to update percent fee: ${err.message}`);
     }
   };
 
   const handleUpdateBaseFee = async () => {
-    if (!allo) {
-      console.error("Allo interaction not initialized");
-      setError("Allo interaction not initialized");
-      return;
-    }
-
     try {
-      console.log("Updating base fee...");
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
       const signer = provider.getSigner();
-
-      const baseFeeInWei = ethers.utils.parseEther(newBaseFee);
-      const tx = await allo.updateBaseFee(signer, baseFeeInWei);
-      console.log("Update base fee transaction sent:", tx.hash);
+      const allo = alloInteraction(signer);
+      const tx = await allo.updateBaseFee(signer, ethers.utils.parseEther(newBaseFee));
       await tx.wait();
-      console.log("Update base fee transaction confirmed");
-
-      const updatedBaseFee = await allo.getBaseFee();
-      setBaseFee(ethers.utils.formatEther(updatedBaseFee));
       setNewBaseFee("");
+      fetchContractInfo(allo);
       console.log("Base fee updated successfully");
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to update base fee:", err);
       setError(`Failed to update base fee: ${err.message}`);
     }
   };
 
   const handleUpdateTreasury = async () => {
-    if (!allo) {
-      console.error("Allo interaction not initialized");
-      setError("Allo interaction not initialized");
-      return;
-    }
-
     try {
-      console.log("Updating treasury address...");
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
       const signer = provider.getSigner();
-
+      const allo = alloInteraction(signer);
       const tx = await allo.updateTreasury(signer, newTreasury);
-      console.log("Update treasury transaction sent:", tx.hash);
       await tx.wait();
-      console.log("Update treasury transaction confirmed");
-
-      const updatedTreasury = await allo.getTreasury();
-      setTreasury(updatedTreasury);
       setNewTreasury("");
-      console.log("Treasury address updated successfully");
-    } catch (err) {
+      fetchContractInfo(allo);
+      console.log("Treasury updated successfully");
+    } catch (err: any) {
       console.error("Failed to update treasury:", err);
       setError(`Failed to update treasury: ${err.message}`);
     }
   };
 
+  const handleCreateProgram = async () => {
+    try {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const allo = alloInteraction(signer);
+
+      const profileId = ethers.utils.formatBytes32String("profileId");
+      const strategy = STRATEGY_ADDRESS;
+      const initData = "0x"; // Replace with appropriate initData
+      const token = ethers.constants.AddressZero; // Replace with appropriate token address
+      const amount = ethers.utils.parseEther("1"); // Replace with appropriate amount
+      const metadata = {
+       protocol: ethers.utils.parseUnits("1", 0),
+        pointer: "QmYwAPJzv5CZsnAzt8auVZRnLRG3FGMyz5bnF2C6UrQ1zK",
+      };
+      const managers = [walletAddress]; // Replace with appropriate managers
+
+      console.log("Creating pool with the following parameters:");
+      console.log("Profile ID:", profileId);
+      console.log("Strategy:", strategy);
+      console.log("Init Data:", initData);
+      console.log("Token:", token);
+      console.log("Amount:", amount);
+      console.log("Metadata:", metadata);
+      console.log("Managers:", managers);
+
+      const tx = await allo.createPool(signer, profileId, strategy, initData, token, metadata, amount, managers);
+      await tx.wait();
+      console.log("Program created successfully");
+    } catch (err: any) {
+      console.error("Failed to create program:", err);
+      setError(`Failed to create program: ${err.message}`);
+    }
+  };
+
+/*
+const metadata = {
+ //protocol: ethers.BigNumber.from(1),
+  pointer: "your_ipfs_hash_here",
+};*/
+
+
   return (
-    <div>
-      <h1>Allo Dashboard</h1>
-      {!isConnected ? (
-        <button onClick={handleConnect} disabled={isConnecting}>
-          {isConnecting ? 'Connecting...' : 'Connect to MetaMask for Allo'}
+    <div className={styles.container}>
+      <h1 className={styles.title}>Allo Dashboard</h1>
+      <div className={styles.connectWalletContainer}>
+        <button
+          onClick={handleConnect}
+          disabled={isConnecting}
+          className={styles.button}
+        >
+          {isConnecting ? "Connecting..." : "Connect to MetaMask"}
         </button>
-      ) : (
-        <>
-          <p>Current Percent Fee: {percentFee}%</p>
+        {error && <p className={styles.error}>{error}</p>}
+      </div>
+      {walletAddress && (
+        <div className={styles.infoSection}>
+          <p>Connected Wallet Address: {walletAddress}</p>
           <p>Base Fee: {baseFee} ETH</p>
+          <p>Percentage Fee: {percentFee}%</p>
           <p>Treasury Address: {treasury}</p>
           <div>
             <input
               type="text"
               value={newPercentFee}
               onChange={(e) => setNewPercentFee(e.target.value)}
-              placeholder="New Percent Fee"
+              placeholder="New Percentage Fee"
             />
-            <button onClick={handleUpdatePercentFee}>Update Percent Fee</button>
+            <button onClick={handleUpdatePercentFee} className={styles.button}>
+              Update Percentage Fee
+            </button>
           </div>
           <div>
             <input
@@ -191,7 +189,9 @@ const Allo = () => {
               onChange={(e) => setNewBaseFee(e.target.value)}
               placeholder="New Base Fee (ETH)"
             />
-            <button onClick={handleUpdateBaseFee}>Update Base Fee</button>
+            <button onClick={handleUpdateBaseFee} className={styles.button}>
+              Update Base Fee
+            </button>
           </div>
           <div>
             <input
@@ -200,11 +200,17 @@ const Allo = () => {
               onChange={(e) => setNewTreasury(e.target.value)}
               placeholder="New Treasury Address"
             />
-            <button onClick={handleUpdateTreasury}>Update Treasury</button>
+            <button onClick={handleUpdateTreasury} className={styles.button}>
+              Update Treasury
+            </button>
           </div>
-        </>
+          <div>
+            <button onClick={handleCreateProgram} className={styles.button}>
+              Create Program
+            </button>
+          </div>
+        </div>
       )}
-      {(error || connectionError) && <p style={{ color: "red" }}>{error || connectionError.message}</p>}
     </div>
   );
 };

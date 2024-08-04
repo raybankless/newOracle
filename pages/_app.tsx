@@ -16,7 +16,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     <ThirdwebProvider
       clientId={'22f2a1f2653b1f091455a59951c2ecca'}
       activeChain={activeChain}
-      supportedWallets={[smartWallet(embeddedWallet(), walletConfig)]}
+      supportedWallets={[smartWallet(embeddedWallet(), walletConfig)] }
     >
       <Component {...pageProps} />
     </ThirdwebProvider>
