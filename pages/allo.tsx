@@ -6,7 +6,9 @@ import { ethers } from "ethers";
 import { alloInteraction } from "../components/AlloContractInteraction";
 import styles from "../styles/Allo.module.css";
 
-const client = createThirdwebClient({ clientId: "22f2a1f2653b1f091455a59z951c2ecca" });
+const client = createThirdwebClient({
+  clientId: "22f2a1f2653b1f091455a59z951c2ecca",
+});
 
 const ALLO_CONTRACT_ADDRESS = "0xf5f35867AEccF350B55b90E41044F47428950920"; // Replace with your contract address
 const STRATEGY_ADDRESS = "0xeED429051B60b77F0492435D6E3F6115d272fE93"; // Update with your strategy address
@@ -45,7 +47,9 @@ const Allo: React.FC = () => {
     }
   };
 
-  const fetchContractInfo = async (allo: ReturnType<typeof alloInteraction>) => {
+  const fetchContractInfo = async (
+    allo: ReturnType<typeof alloInteraction>,
+  ) => {
     try {
       console.log("Fetching contract info...");
       const percentFeeValue = await allo.getPercentFee();
@@ -67,7 +71,10 @@ const Allo: React.FC = () => {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const allo = alloInteraction(signer);
-      const tx = await allo.updatePercentFee(signer, ethers.utils.parseUnits(newPercentFee, 16));
+      const tx = await allo.updatePercentFee(
+        signer,
+        ethers.utils.parseUnits(newPercentFee, 16),
+      );
       await tx.wait();
       setNewPercentFee("");
       fetchContractInfo(allo);
@@ -83,7 +90,10 @@ const Allo: React.FC = () => {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const allo = alloInteraction(signer);
-      const tx = await allo.updateBaseFee(signer, ethers.utils.parseEther(newBaseFee));
+      const tx = await allo.updateBaseFee(
+        signer,
+        ethers.utils.parseEther(newBaseFee),
+      );
       await tx.wait();
       setNewBaseFee("");
       fetchContractInfo(allo);
@@ -116,41 +126,45 @@ const Allo: React.FC = () => {
       const signer = provider.getSigner();
       const allo = alloInteraction(signer);
 
-      const profileId = ethers.utils.formatBytes32String("profileId");
+      // Ensure this is a valid profile ID that exists in the Registry contract
+      const profileId = ethers.utils.id("profileId");
       const strategy = STRATEGY_ADDRESS;
-      const initData = "0x"; // Replace with appropriate initData
-      const token = ethers.constants.AddressZero; // Replace with appropriate token address
-      const amount = ethers.utils.parseEther("1"); // Replace with appropriate amount
-      const metadata = [
-        ethers.BigNumber.from(1),
-        "QmYwAPJzv5CZsnAzt8auVZRnLRG3FGMyz5bnF2C6UrQ1zK"
-      ];
-      const managers = [walletAddress]; // Replace with appropriate managers
+      const initData = "0x"; // This might need to be actual initialization data
+      const token = ethers.constants.AddressZero; // Using ETH
+      const amount = ethers.utils.parseEther("1");
+      const metadata = {
+        protocol: 1,
+        pointer: "QmYwAPJzv5CZsnAzt8auVZRnLRG3FGMyz5bnF2C6UrQ1zK"
+      };
+      const managers = [await signer.getAddress()];
 
       console.log("Creating pool with the following parameters:");
       console.log("Profile ID:", profileId);
       console.log("Strategy:", strategy);
       console.log("Init Data:", initData);
       console.log("Token:", token);
-      console.log("Amount:", amount);
+      console.log("Amount:", amount.toString());
       console.log("Metadata:", metadata);
       console.log("Managers:", managers);
 
-      const tx = await allo.createPool(signer, profileId, strategy, initData, token, amount, metadata, managers);
+      const tx = await allo.createPool(
+        profileId,
+        strategy,
+        initData,
+        token,
+        amount,
+        metadata,
+        managers,
+        { value: amount } // Include this if you're funding with ETH
+      );
+
       await tx.wait();
       console.log("Program created successfully");
-    } catch (err: any) {
+    } catch (err) {
       console.error("Failed to create program:", err);
       setError(`Failed to create program: ${err.message}`);
     }
   };
-
-/*
-const metadata = {
- //protocol: ethers.BigNumber.from(1),
-  pointer: "your_ipfs_hash_here",
-};*/
-
 
   return (
     <div className={styles.container}>
