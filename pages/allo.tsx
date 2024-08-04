@@ -126,28 +126,28 @@ const Allo: React.FC = () => {
       const signer = provider.getSigner();
       const allo = alloInteraction(signer);
 
-      // Ensure this is a valid profile ID that exists in the Registry contract
-      const profileId = ethers.utils.id("profileId");
+      const profileId = ethers.utils.formatBytes32String("profileId");
       const strategy = STRATEGY_ADDRESS;
-      const initData = "0x"; // This might need to be actual initialization data
-      const token = ethers.constants.AddressZero; // Using ETH
-      const amount = ethers.utils.parseEther("1");
-      const metadata = {
-        protocol: 1,
-        pointer: "QmYwAPJzv5CZsnAzt8auVZRnLRG3FGMyz5bnF2C6UrQ1zK"
-      };
-      const managers = [await signer.getAddress()];
+      const initData = "0x"; // Replace with appropriate initData
+      const token = ethers.constants.AddressZero; // Replace with appropriate token address
+      const amount = ethers.utils.parseEther("1"); // Replace with appropriate amount
+      const metadata = [
+        ethers.BigNumber.from(1),
+        "QmYwAPJzv5CZsnAzt8auVZRnLRG3FGMyz5bnF2C6UrQ1zK",
+      ];
+      const managers = [walletAddress]; // Replace with appropriate managers
 
       console.log("Creating pool with the following parameters:");
       console.log("Profile ID:", profileId);
       console.log("Strategy:", strategy);
       console.log("Init Data:", initData);
       console.log("Token:", token);
-      console.log("Amount:", amount.toString());
+      console.log("Amount:", amount);
       console.log("Metadata:", metadata);
       console.log("Managers:", managers);
 
       const tx = await allo.createPool(
+        signer,
         profileId,
         strategy,
         initData,
@@ -155,12 +155,10 @@ const Allo: React.FC = () => {
         amount,
         metadata,
         managers,
-        { value: amount } // Include this if you're funding with ETH
       );
-
       await tx.wait();
       console.log("Program created successfully");
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to create program:", err);
       setError(`Failed to create program: ${err.message}`);
     }
