@@ -136,7 +136,7 @@ const Allo: React.FC = () => {
       console.log("Metadata:", metadata);
       console.log("Managers:", managers);
 
-      const tx = await allo.createPool(signer, profileId, strategy, initData, token, metadata, amount, managers);
+      const tx = await allo.createPool(signer, profileId, strategy, initData, token, amount, metadata, managers);
       await tx.wait();
       console.log("Program created successfully");
     } catch (err: any) {
