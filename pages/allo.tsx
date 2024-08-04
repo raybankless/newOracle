@@ -126,11 +126,11 @@ const Allo: React.FC = () => {
       const signer = provider.getSigner();
       const allo = alloInteraction(signer);
 
-      const profileId = ethers.utils.formatBytes32String("profileId");
+      const profileId = ethers.utils.id("profileId");
       const strategy = STRATEGY_ADDRESS;
       const initData = "0x"; // Replace with appropriate initData
       const token = ethers.constants.AddressZero; // Replace with appropriate token address
-      const amount = ethers.utils.parseEther("1"); // Replace with appropriate amount
+      const amount = ethers.utils.parseEther("0"); // Replace with appropriate amount
       const metadata = [
         ethers.BigNumber.from(1),
         "QmYwAPJzv5CZsnAzt8auVZRnLRG3FGMyz5bnF2C6UrQ1zK",
