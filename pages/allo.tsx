@@ -114,12 +114,12 @@ const Allo: React.FC = () => {
     }
   };
 
-  const toggleCreateProgramModal = () => {
-    setIsCreateProgramModalOpen(!isCreateProgramModalOpen);
+  const openCreateProgramModal = () => {
+    setIsCreateProgramModalOpen(true);
   };
 
-  const handleOpenCreateProgramModal = () => {
-    toggleCreateProgramModal();
+  const closeCreateProgramModal = () => {
+    setIsCreateProgramModalOpen(false);
   };
 
   const handleCreateProgramSuccess = (program) => {
@@ -181,7 +181,7 @@ const Allo: React.FC = () => {
               </button>
             </div>
             <div>
-              <button onClick={handleOpenCreateProgramModal} className={styles.button}>
+              <button onClick={openCreateProgramModal} className={styles.button}>
                 Create Program
               </button>
             </div>
@@ -194,8 +194,10 @@ const Allo: React.FC = () => {
       )}
       {isCreateProgramModalOpen && (
         <CreateProgramForm
-          onClose={toggleCreateProgramModal}
+          onClose={closeCreateProgramModal}
           onSuccess={handleCreateProgramSuccess}
+          connectedAddress={walletAddress}
+          alloInteraction={() => alloInteraction(new ethers.providers.Web3Provider(window.ethereum).getSigner())}
         />
       )}
     </div>
