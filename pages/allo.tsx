@@ -1,4 +1,3 @@
-// pages/allo.tsx
 import React, { useState, useEffect } from "react";
 import { createThirdwebClient } from "thirdweb";
 import { createWallet, injectedProvider } from "thirdweb/wallets";
@@ -24,8 +23,7 @@ const Allo: React.FC = () => {
   const [newPercentFee, setNewPercentFee] = useState<string>("");
   const [newBaseFee, setNewBaseFee] = useState<string>("");
   const [newTreasury, setNewTreasury] = useState<string>("");
-  const [isCreateProgramModalOpen, setIsCreateProgramModalOpen] =
-    useState<boolean>(false);
+  const [isCreateProgramModalOpen, setIsCreateProgramModalOpen] = useState<boolean>(false);
   const [programs, setPrograms] = useState<any[]>([]);
 
   const handleConnect = async () => {
@@ -51,9 +49,7 @@ const Allo: React.FC = () => {
     }
   };
 
-  const fetchContractInfo = async (
-    allo: ReturnType<typeof alloInteraction>,
-  ) => {
+  const fetchContractInfo = async (allo: ReturnType<typeof alloInteraction>) => {
     try {
       console.log("Fetching contract info...");
       const percentFeeValue = await allo.getPercentFee();
@@ -75,10 +71,7 @@ const Allo: React.FC = () => {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const allo = alloInteraction(signer);
-      const tx = await allo.updatePercentFee(
-        signer,
-        ethers.utils.parseUnits(newPercentFee, 16),
-      );
+      const tx = await allo.updatePercentFee(signer, ethers.utils.parseUnits(newPercentFee, 16));
       await tx.wait();
       setNewPercentFee("");
       fetchContractInfo(allo);
@@ -94,10 +87,7 @@ const Allo: React.FC = () => {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const allo = alloInteraction(signer);
-      const tx = await allo.updateBaseFee(
-        signer,
-        ethers.utils.parseEther(newBaseFee),
-      );
+      const tx = await allo.updateBaseFee(signer, ethers.utils.parseEther(newBaseFee));
       await tx.wait();
       setNewBaseFee("");
       fetchContractInfo(allo);
@@ -133,18 +123,19 @@ const Allo: React.FC = () => {
   };
 
   const handleCreateProgramSuccess = (program) => {
-    setPrograms((prevPrograms) => [...prevPrograms, program]);
+    if (program && program.id) {
+      setPrograms((prevPrograms) => [...prevPrograms, program]);
+      console.log("New program added:", program);
+    } else {
+      console.error("Invalid program data:", program);
+    }
   };
 
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>Allo Dashboard</h1>
       <div className={styles.connectWalletContainer}>
-        <button
-          onClick={handleConnect}
-          disabled={isConnecting}
-          className={styles.button}
-        >
+        <button onClick={handleConnect} disabled={isConnecting} className={styles.button}>
           {isConnecting ? "Connecting..." : "Connect to MetaMask"}
         </button>
         {error && <p className={styles.error}>{error}</p>}
@@ -163,10 +154,7 @@ const Allo: React.FC = () => {
                 onChange={(e) => setNewPercentFee(e.target.value)}
                 placeholder="New Percentage Fee"
               />
-              <button
-                onClick={handleUpdatePercentFee}
-                className={styles.button}
-              >
+              <button onClick={handleUpdatePercentFee} className={styles.button}>
                 Update Percentage Fee
               </button>
             </div>
@@ -193,10 +181,7 @@ const Allo: React.FC = () => {
               </button>
             </div>
             <div>
-              <button
-                onClick={handleOpenCreateProgramModal}
-                className={styles.button}
-              >
+              <button onClick={handleOpenCreateProgramModal} className={styles.button}>
                 Create Program
               </button>
             </div>
