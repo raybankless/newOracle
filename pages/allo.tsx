@@ -13,6 +13,11 @@ const client = createThirdwebClient({
 
 const ALLO_CONTRACT_ADDRESS = "0xf5f35867AEccF350B55b90E41044F47428950920";
 
+interface Program {
+  id: string;
+  name: string;
+}
+
 const Allo: React.FC = () => {
   const [walletAddress, setWalletAddress] = useState<string>("");
   const [isConnecting, setIsConnecting] = useState<boolean>(false);
@@ -23,7 +28,8 @@ const Allo: React.FC = () => {
   const [newPercentFee, setNewPercentFee] = useState<string>("");
   const [newBaseFee, setNewBaseFee] = useState<string>("");
   const [newTreasury, setNewTreasury] = useState<string>("");
-  const [isCreateProgramModalOpen, setIsCreateProgramModalOpen] = useState<boolean>(false);
+  const [isCreateProgramModalOpen, setIsCreateProgramModalOpen] =
+    useState<boolean>(false);
   const [programs, setPrograms] = useState<any[]>([]);
 
   const handleConnect = async () => {
@@ -49,7 +55,9 @@ const Allo: React.FC = () => {
     }
   };
 
-  const fetchContractInfo = async (allo: ReturnType<typeof alloInteraction>) => {
+  const fetchContractInfo = async (
+    allo: ReturnType<typeof alloInteraction>,
+  ) => {
     try {
       console.log("Fetching contract info...");
       const percentFeeValue = await allo.getPercentFee();
@@ -71,7 +79,10 @@ const Allo: React.FC = () => {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const allo = alloInteraction(signer);
-      const tx = await allo.updatePercentFee(signer, ethers.utils.parseUnits(newPercentFee, 16));
+      const tx = await allo.updatePercentFee(
+        signer,
+        ethers.utils.parseUnits(newPercentFee, 16),
+      );
       await tx.wait();
       setNewPercentFee("");
       fetchContractInfo(allo);
@@ -87,7 +98,10 @@ const Allo: React.FC = () => {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const allo = alloInteraction(signer);
-      const tx = await allo.updateBaseFee(signer, ethers.utils.parseEther(newBaseFee));
+      const tx = await allo.updateBaseFee(
+        signer,
+        ethers.utils.parseEther(newBaseFee),
+      );
       await tx.wait();
       setNewBaseFee("");
       fetchContractInfo(allo);
@@ -122,7 +136,7 @@ const Allo: React.FC = () => {
     setIsCreateProgramModalOpen(false);
   };
 
-  const handleCreateProgramSuccess = (program) => {
+  const handleCreateProgramSuccess = (program: Program) => {
     if (program && program.id) {
       setPrograms((prevPrograms) => [...prevPrograms, program]);
       console.log("New program added:", program);
@@ -135,7 +149,11 @@ const Allo: React.FC = () => {
     <div className={styles.container}>
       <h1 className={styles.title}>Allo Dashboard</h1>
       <div className={styles.connectWalletContainer}>
-        <button onClick={handleConnect} disabled={isConnecting} className={styles.button}>
+        <button
+          onClick={handleConnect}
+          disabled={isConnecting}
+          className={styles.button}
+        >
           {isConnecting ? "Connecting..." : "Connect to MetaMask"}
         </button>
         {error && <p className={styles.error}>{error}</p>}
@@ -154,7 +172,10 @@ const Allo: React.FC = () => {
                 onChange={(e) => setNewPercentFee(e.target.value)}
                 placeholder="New Percentage Fee"
               />
-              <button onClick={handleUpdatePercentFee} className={styles.button}>
+              <button
+                onClick={handleUpdatePercentFee}
+                className={styles.button}
+              >
                 Update Percentage Fee
               </button>
             </div>
@@ -181,7 +202,10 @@ const Allo: React.FC = () => {
               </button>
             </div>
             <div>
-              <button onClick={openCreateProgramModal} className={styles.button}>
+              <button
+                onClick={openCreateProgramModal}
+                className={styles.button}
+              >
                 Create Program
               </button>
             </div>
@@ -197,7 +221,11 @@ const Allo: React.FC = () => {
           onClose={closeCreateProgramModal}
           onSuccess={handleCreateProgramSuccess}
           connectedAddress={walletAddress}
-          alloInteraction={() => alloInteraction(new ethers.providers.Web3Provider(window.ethereum).getSigner())}
+          alloInteraction={() =>
+            alloInteraction(
+              new ethers.providers.Web3Provider(window.ethereum).getSigner(),
+            )
+          }
         />
       )}
     </div>
