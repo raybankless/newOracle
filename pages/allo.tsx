@@ -78,7 +78,7 @@ const Allo: React.FC = () => {
     try {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
-      const allo = alloInteraction(signer);
+      const allo = alloInteraction();
       const tx = await allo.updatePercentFee(
         signer,
         ethers.utils.parseUnits(newPercentFee, 16),
