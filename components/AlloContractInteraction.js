@@ -12,14 +12,12 @@ const ABI = [
   "function createPool(bytes32,address,bytes,address,uint256,(uint256,string),address[]) external returns (uint256)",
   "function updateBaseFee(uint256 _baseFee) external",
   "function updateTreasury(address payable _treasury) external",
-  "function getPool(uint256 _poolId) external view returns (tuple(bytes32 profileId, address strategy, (uint256, string) metadata, address token, bytes32 managerRole, bytes32 adminRole))",
+  "function getPool(uint256 _poolId) external view returns (tuple(bytes32 profileId, address strategy, (uint256, string) metadata, address token, bytes32 managerRole, bytes32 adminRole))"
 ];
 
-export const alloInteraction = () => {
+export const alloInteraction = async () => {
   if (!window.ethereum) {
-    throw new Error(
-      "MetaMask is not installed. Please install it to continue.",
-    );
+    throw new Error("MetaMask is not installed. Please install it to continue.");
   }
 
   const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -30,9 +28,8 @@ export const alloInteraction = () => {
     getFeeDenominator: async () => {
       return await contract.getFeeDenominator();
     },
-    updatePercentFee: async (signer, newPercentFee) => {
-      const contractWithSigner = contract.connect(signer);
-      return await contractWithSigner.updatePercentFee(newPercentFee);
+    updatePercentFee: async (newPercentFee) => {
+      return await contract.updatePercentFee(newPercentFee);
     },
     getPercentFee: async () => {
       return await contract.getPercentFee();
@@ -40,45 +37,23 @@ export const alloInteraction = () => {
     getBaseFee: async () => {
       return await contract.getBaseFee();
     },
-    updateBaseFee: async (signer, newBaseFee) => {
-      const contractWithSigner = contract.connect(signer);
-      return await contractWithSigner.updateBaseFee(newBaseFee);
+    updateBaseFee: async (newBaseFee) => {
+      return await contract.updateBaseFee(newBaseFee);
     },
     getTreasury: async () => {
       return await contract.getTreasury();
     },
-    updateTreasury: async (signer, newTreasury) => {
-      const contractWithSigner = contract.connect(signer);
-      return await contractWithSigner.updateTreasury(newTreasury);
+    updateTreasury: async (newTreasury) => {
+      return await contract.updateTreasury(newTreasury);
     },
     getRegistry: async () => {
       return await contract.getRegistry();
     },
-    createPool: async (
-      signer,
-      profileId,
-      strategy,
-      initData,
-      token,
-      amount,
-      metadata,
-      managers,
-      options = {},
-    ) => {
-      const contractWithSigner = contract.connect(signer);
-      return await contractWithSigner.createPool(
-        profileId,
-        strategy,
-        initData,
-        token,
-        amount,
-        metadata,
-        managers,
-        options,
-      );
+    createPool: async (profileId, strategy, initData, token, amount, metadata, managers, options = {}) => {
+      return await contract.createPool(profileId, strategy, initData, token, amount, metadata, managers, options);
     },
     getPool: async (poolId) => {
       return await contract.getPool(poolId);
-    },
+    }
   };
 };

@@ -79,10 +79,7 @@ const Allo: React.FC = () => {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const allo = alloInteraction();
-      const tx = await allo.updatePercentFee(
-        signer,
-        ethers.utils.parseUnits(newPercentFee, 16),
-      );
+      const tx = await allo.updatePercentFee(ethers.utils.parseUnits(newPercentFee, 16));
       await tx.wait();
       setNewPercentFee("");
       fetchContractInfo(allo);
@@ -98,10 +95,7 @@ const Allo: React.FC = () => {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const allo = alloInteraction(signer);
-      const tx = await allo.updateBaseFee(
-        signer,
-        ethers.utils.parseEther(newBaseFee),
-      );
+      const tx = await allo.updateBaseFee(ethers.utils.parseEther(newBaseFee));
       await tx.wait();
       setNewBaseFee("");
       fetchContractInfo(allo);
@@ -117,7 +111,7 @@ const Allo: React.FC = () => {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const allo = alloInteraction(signer);
-      const tx = await allo.updateTreasury(signer, newTreasury);
+      const tx = await allo.updateTreasury(newTreasury);
       await tx.wait();
       setNewTreasury("");
       fetchContractInfo(allo);
