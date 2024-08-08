@@ -1,9 +1,4 @@
 import React, { useState, useEffect } from "react";
-import {
-  useContract,
-  useContractWrite,
-  useContractRead,
-} from "@thirdweb-dev/react";
 import { ethers } from "ethers";
 import styles from "../styles/CreateEventModal.module.css";
 import { alloInteraction } from "../components/AlloContractInteraction";
@@ -13,7 +8,7 @@ const REGISTRY_CONTRACT_ADDRESS = "0x3787d9680fc5EB34c5f5F75e793d93C98f07d952";
 const VAULT_STRATEGY_ADDRESS = "0xeED429051B60b77F0492435D6E3F6115d272fE93";
 const OP_TOKEN_ADDRESS = "0x4200000000000000000000000000000000000042";
 
-const CreateProgramForm = ({ onClose, onSuccess, connectedAddress }) => {
+const CreateProgramForm = ({ onClose, onSuccess }) => {
   const [programName, setProgramName] = useState("");
   const [error, setError] = useState(null);
   const [detailedError, setDetailedError] = useState(null);
@@ -22,29 +17,13 @@ const CreateProgramForm = ({ onClose, onSuccess, connectedAddress }) => {
   const [isApprovingStrategy, setIsApprovingStrategy] = useState(false);
   const [signer, setSigner] = useState(null);
   const [allo, setAllo] = useState(null);
-
-  const { contract: registryContract } = useContract(REGISTRY_CONTRACT_ADDRESS);
-  const { contract: alloContract } = useContract(ALLO_CONTRACT_ADDRESS);
-
-  const { mutateAsync: createProfile, isLoading: isCreatingProfile } =
-    useContractWrite(registryContract, "createProfile");
-  const { mutateAsync: createPool, isLoading: isCreatingPool } =
-    useContractWrite(alloContract, "createPool");
-  const { mutateAsync: addToCloneableStrategies } = useContractWrite(
-    alloContract,
-    "addToCloneableStrategies",
-  );
-
-  const { data: isCloneableStrategy, isLoading: isCheckingStrategy } =
-    useContractRead(alloContract, "isCloneableStrategy", [
-      VAULT_STRATEGY_ADDRESS,
-    ]);
+  const [connectedAddress, setConnectedAddress] = useState(null);
 
   useEffect(() => {
     const checkStrategyApproval = async () => {
-      if (alloContract && !isCheckingStrategy) {
+      if (allo) {
         try {
-          const isApproved = await alloContract.call("isCloneableStrategy", [
+          const isApproved = await allo.getRegistry().call("isCloneableStrategy", [
             VAULT_STRATEGY_ADDRESS,
           ]);
           setIsStrategyApproved(isApproved);
@@ -57,34 +36,26 @@ const CreateProgramForm = ({ onClose, onSuccess, connectedAddress }) => {
     };
 
     checkStrategyApproval();
+  }, [allo]);
 
-    const setupAllo = async () => {
-      if (window.ethereum) {
+  const connectToMetaMask = async () => {
+    if (window.ethereum) {
+      try {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const accounts = await provider.send("eth_requestAccounts", []);
         const signer = provider.getSigner();
-        setAllo(alloInteraction(signer));
-        console.log("Allo contract set:", allo);
+        setSigner(signer);
+        setConnectedAddress(accounts[0]);
+        const alloInstance = alloInteraction(signer);
+        setAllo(alloInstance);
+        console.log("Connected to MetaMask:", accounts[0]);
+        console.log("Allo contract set:", alloInstance);
+      } catch (error) {
+        console.error("Failed to connect to MetaMask:", error);
+        setError("Failed to connect to MetaMask. Please try again.");
       }
-    };
-    setupAllo();
-  }, [alloContract, isCheckingStrategy]);
-
-  const approveStrategy = async () => {
-    setIsApprovingStrategy(true);
-    try {
-      console.log("Adding strategy to cloneable list...");
-      const result = await addToCloneableStrategies({
-        args: [VAULT_STRATEGY_ADDRESS],
-      });
-      console.log("Strategy added to cloneable list:", result);
-      setIsStrategyApproved(true);
-    } catch (error) {
-      console.error("Failed to approve strategy:", error);
-      setError(
-        "Failed to approve strategy. Please try again or contact the administrator.",
-      );
-    } finally {
-      setIsApprovingStrategy(false);
+    } else {
+      setError("MetaMask is not installed. Please install it to continue.");
     }
   };
 
@@ -100,50 +71,47 @@ const CreateProgramForm = ({ onClose, onSuccess, connectedAddress }) => {
 
     console.log("Starting form submission...");
     try {
-      // Create profile
       console.log("Creating profile...");
-      const createProfileResult = await createProfile({
+      const createProfileResult = await allo.createProfile({
         args: [Date.now(), programName, [1, ""], connectedAddress, []],
       });
       console.log("Profile created:", createProfileResult.receipt);
 
       const profileCreatedEvent = createProfileResult.receipt.events.find(
-        (event) => event.event === "ProfileCreated",
+        (event) => event.event === "ProfileCreated"
       );
 
       if (!profileCreatedEvent) {
         throw new Error(
-          "ProfileCreated event not found in transaction receipt.",
+          "ProfileCreated event not found in transaction receipt."
         );
       }
 
       const profileId = profileCreatedEvent.args[0];
       console.log("Profile ID:", profileId);
 
-      // Create pool
       console.log("Creating pool...");
       const initStrategyData = ethers.utils.defaultAbiCoder.encode(
         ["uint256", "uint256", "uint256", "uint256"],
-        [0, 0, 0, 0],
+        [0, 0, 0, 0]
       );
 
       const createPoolResult = await allo.createPool(
-        window.ethereum.selectedAddress, // use the selected address from MetaMask
+        signer,
         profileId,
         VAULT_STRATEGY_ADDRESS,
         initStrategyData,
         OP_TOKEN_ADDRESS,
-        0, // 0 initial funding
-        [1, programName], // metadata
-        [connectedAddress], // managers (only connected address)
+        0,
+        [1, programName],
+        [connectedAddress],
         {
-          gasLimit: ethers.utils.hexlify(3000000), // Adjust this value based on your needs
-        },
+          gasLimit: ethers.utils.hexlify(3000000),
+        }
       );
 
       console.log("Pool creation result:", createPoolResult);
 
-      // Wait for the transaction to be mined
       const receipt = await createPoolResult.wait();
 
       if (receipt.status === 0) {
@@ -151,13 +119,13 @@ const CreateProgramForm = ({ onClose, onSuccess, connectedAddress }) => {
       }
 
       const poolCreatedEvent = receipt.events.find(
-        (event) => event.event === "PoolCreated",
+        (event) => event.event === "PoolCreated"
       );
 
       if (!poolCreatedEvent) {
         console.error("All events:", receipt.events);
         throw new Error(
-          "PoolCreated event not found in transaction receipt. Check console for all events.",
+          "PoolCreated event not found in transaction receipt. Check console for all events."
         );
       }
 
@@ -177,7 +145,7 @@ const CreateProgramForm = ({ onClose, onSuccess, connectedAddress }) => {
     let detailedErrorMessage = JSON.stringify(
       err,
       Object.getOwnPropertyNames(err),
-      2,
+      2
     );
 
     if (err instanceof Error) {
@@ -203,7 +171,7 @@ const CreateProgramForm = ({ onClose, onSuccess, connectedAddress }) => {
           if (customErrors[customErrorId]) {
             const decodedCustomError = ethers.utils.defaultAbiCoder.decode(
               [customErrors[customErrorId]],
-              `0x${err.data.slice(10)}`,
+              `0x${err.data.slice(10)}`
             );
             errorMessage = `Custom Error: ${decodedCustomError[0]}`;
             detailedErrorMessage = JSON.stringify(decodedCustomError, null, 2);
@@ -221,18 +189,12 @@ const CreateProgramForm = ({ onClose, onSuccess, connectedAddress }) => {
     setDetailedError(detailedErrorMessage);
   };
 
-  if (isCheckingStrategy) {
-    return <div>Checking strategy approval...</div>;
-  }
-
-  if (isCreatingProfile || isCreatingPool) {
-    return <div>Creating program...</div>;
-  }
-
   return (
     <div className={styles.modalContent}>
       <h2 className={styles.textBlack}>Create a Grant Program</h2>
-      {!isStrategyApproved ? (
+      {!connectedAddress ? (
+        <button onClick={connectToMetaMask}>Connect to MetaMask</button>
+      ) : !isStrategyApproved ? (
         <div>
           <p>Strategy is not approved for cloning. Please approve it first.</p>
           <button onClick={approveStrategy} disabled={isApprovingStrategy}>
