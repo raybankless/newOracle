@@ -136,6 +136,9 @@ const CreateProgramForm = ({ onClose, onSuccess, connectedAddress }) => {
         0, // 0 initial funding
         [1, programName], // metadata
         [connectedAddress], // managers (only connected address)
+        {
+          gasLimit: ethers.utils.hexlify(3000000), // Adjust this value based on your needs
+        },
       );
 
       console.log("Pool creation result:", createPoolResult);

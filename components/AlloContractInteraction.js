@@ -47,9 +47,9 @@ export const alloInteraction = (provider) => {
     getRegistry: async () => {
       return await contract.getRegistry();
     },
-    createPool: async (signer, profileId, strategy, initData, token, amount, metadata, managers) => {
+    createPool: async (signer, profileId, strategy, initData, token, amount, metadata, managers, options = {}) => {
       const contractWithSigner = contract.connect(signer);
-      return await contractWithSigner.createPool(profileId, strategy, initData, token, amount, metadata, managers);
+      return await contractWithSigner.createPool(profileId, strategy, initData, token, amount, metadata, managers, options);
     },
     getPool: async (poolId) => {
       return await contract.getPool(poolId);
