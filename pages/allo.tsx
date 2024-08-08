@@ -1,230 +1,234 @@
 import React, { useState, useEffect } from "react";
-import { createThirdwebClient } from "thirdweb";
-import { createWallet, injectedProvider } from "thirdweb/wallets";
 import { ethers } from "ethers";
+import styles from "../styles/CreateEventModal.module.css";
 import { alloInteraction } from "../components/AlloContractInteraction";
-import CreateProgramForm from "../components/CreateProgramForm";
-import ProgramsGrid from "../components/ProgramsGrid";
-import styles from "../styles/Allo.module.css";
-
-const client = createThirdwebClient({
-  clientId: "22f2a1f2653b1f091455a59z951c2ecca",
-});
 
 const ALLO_CONTRACT_ADDRESS = "0xf5f35867AEccF350B55b90E41044F47428950920";
+const REGISTRY_CONTRACT_ADDRESS = "0x3787d9680fc5EB34c5f5F75e793d93C98f07d952";
+const VAULT_STRATEGY_ADDRESS = "0xeED429051B60b77F0492435D6E3F6115d272fE93";
+const OP_TOKEN_ADDRESS = "0x4200000000000000000000000000000000000042";
 
-interface Program {
-  id: string;
-  name: string;
-}
+const CreateProgramForm = ({ onClose, onSuccess }) => {
+  const [programName, setProgramName] = useState("");
+  const [error, setError] = useState(null);
+  const [detailedError, setDetailedError] = useState(null);
+  const [showErrorDetails, setShowErrorDetails] = useState(false);
+  const [isStrategyApproved, setIsStrategyApproved] = useState(false);
+  const [isApprovingStrategy, setIsApprovingStrategy] = useState(false);
+  const [signer, setSigner] = useState(null);
+  const [allo, setAllo] = useState(null);
+  const [connectedAddress, setConnectedAddress] = useState(null);
 
-const Allo: React.FC = () => {
-  const [walletAddress, setWalletAddress] = useState<string>("");
-  const [isConnecting, setIsConnecting] = useState<boolean>(false);
-  const [error, setError] = useState<string>("");
-  const [percentFee, setPercentFee] = useState<string>("");
-  const [baseFee, setBaseFee] = useState<string>("");
-  const [treasury, setTreasury] = useState<string>("");
-  const [newPercentFee, setNewPercentFee] = useState<string>("");
-  const [newBaseFee, setNewBaseFee] = useState<string>("");
-  const [newTreasury, setNewTreasury] = useState<string>("");
-  const [isCreateProgramModalOpen, setIsCreateProgramModalOpen] =
-    useState<boolean>(false);
-  const [programs, setPrograms] = useState<any[]>([]);
-
-  const handleConnect = async () => {
-    try {
-      setIsConnecting(true);
-      const wallet = createWallet("io.metamask");
-      if (injectedProvider("io.metamask")) {
-        const account = await wallet.connect({ client });
-        setWalletAddress(account.address);
-        console.log("Connected to MetaMask:", account);
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const signer = provider.getSigner();
-        const allo = alloInteraction(signer);
-        fetchContractInfo(allo);
-      } else {
-        throw new Error("MetaMask is not installed");
+  useEffect(() => {
+    const checkStrategyApproval = async () => {
+      if (allo) {
+        try {
+          const isApproved = await allo
+            .getRegistry()
+            .call("isCloneableStrategy", [VAULT_STRATEGY_ADDRESS]);
+          setIsStrategyApproved(isApproved);
+          console.log("Is strategy approved:", isApproved);
+        } catch (error) {
+          console.error("Error checking strategy approval:", error);
+          setError("Failed to check strategy approval. Please try again.");
+        }
       }
-    } catch (err: any) {
-      console.error("MetaMask connection failed:", err);
-      setError(err.message || "An unknown error occurred");
-    } finally {
-      setIsConnecting(false);
-    }
-  };
+    };
 
-  const fetchContractInfo = async (
-    allo: ReturnType<typeof alloInteraction>,
-  ) => {
-    try {
-      console.log("Fetching contract info...");
-      const percentFeeValue = await allo.getPercentFee();
-      const baseFeeValue = await allo.getBaseFee();
-      const treasuryAddress = await allo.getTreasury();
+    checkStrategyApproval();
+  }, [allo]);
 
-      setPercentFee(ethers.utils.formatUnits(percentFeeValue, 16));
-      setBaseFee(ethers.utils.formatEther(baseFeeValue));
-      setTreasury(treasuryAddress);
-      console.log("Contract info fetched successfully");
-    } catch (err: any) {
-      console.error("Failed to fetch contract info:", err);
-      setError(`Failed to fetch contract info: ${err.message}`);
-    }
-  };
-
-  const handleUpdatePercentFee = async () => {
-    try {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const allo = alloInteraction(signer);
-      const tx = await allo.updatePercentFee(
-        signer,
-        ethers.utils.parseUnits(newPercentFee, 16),
-      );
-      await tx.wait();
-      setNewPercentFee("");
-      fetchContractInfo(allo);
-      console.log("Percent fee updated successfully");
-    } catch (err: any) {
-      console.error("Failed to update percent fee:", err);
-      setError(`Failed to update percent fee: ${err.message}`);
-    }
-  };
-
-  const handleUpdateBaseFee = async () => {
-    try {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const allo = alloInteraction(signer);
-      const tx = await allo.updateBaseFee(
-        signer,
-        ethers.utils.parseEther(newBaseFee),
-      );
-      await tx.wait();
-      setNewBaseFee("");
-      fetchContractInfo(allo);
-      console.log("Base fee updated successfully");
-    } catch (err: any) {
-      console.error("Failed to update base fee:", err);
-      setError(`Failed to update base fee: ${err.message}`);
-    }
-  };
-
-  const handleUpdateTreasury = async () => {
-    try {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const allo = alloInteraction(signer);
-      const tx = await allo.updateTreasury(signer, newTreasury);
-      await tx.wait();
-      setNewTreasury("");
-      fetchContractInfo(allo);
-      console.log("Treasury updated successfully");
-    } catch (err: any) {
-      console.error("Failed to update treasury:", err);
-      setError(`Failed to update treasury: ${err.message}`);
-    }
-  };
-
-  const openCreateProgramModal = () => {
-    setIsCreateProgramModalOpen(true);
-  };
-
-  const closeCreateProgramModal = () => {
-    setIsCreateProgramModalOpen(false);
-  };
-
-  const handleCreateProgramSuccess = (program: Program) => {
-    if (program && program.id) {
-      setPrograms((prevPrograms) => [...prevPrograms, program]);
-      console.log("New program added:", program);
+  const connectToMetaMask = async () => {
+    if (window.ethereum) {
+      try {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const accounts = await provider.send("eth_requestAccounts", []);
+        const signer = provider.getSigner();
+        setSigner(signer);
+        setConnectedAddress(accounts[0]);
+        setAllo(alloInteraction(signer));
+        console.log("Connected to MetaMask:", accounts[0]);
+      } catch (error) {
+        console.error("Failed to connect to MetaMask:", error);
+        setError("Failed to connect to MetaMask. Please try again.");
+      }
     } else {
-      console.error("Invalid program data:", program);
+      setError("MetaMask is not installed. Please install it to continue.");
     }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    setDetailedError(null);
+
+    if (!allo) {
+      setError("Allo contract not initialized. Please try again.");
+      return;
+    }
+
+    console.log("Starting form submission...");
+    try {
+      console.log("Creating profile...");
+      const createProfileResult = await allo.createProfile({
+        args: [Date.now(), programName, [1, ""], connectedAddress, []],
+      });
+      console.log("Profile created:", createProfileResult.receipt);
+
+      const profileCreatedEvent = createProfileResult.receipt.events.find(
+        (event) => event.event === "ProfileCreated",
+      );
+
+      if (!profileCreatedEvent) {
+        throw new Error(
+          "ProfileCreated event not found in transaction receipt.",
+        );
+      }
+
+      const profileId = profileCreatedEvent.args[0];
+      console.log("Profile ID:", profileId);
+
+      console.log("Creating pool...");
+      const initStrategyData = ethers.utils.defaultAbiCoder.encode(
+        ["uint256", "uint256", "uint256", "uint256"],
+        [0, 0, 0, 0],
+      );
+
+      const createPoolResult = await allo.createPool(
+        connectedAddress,
+        profileId,
+        VAULT_STRATEGY_ADDRESS,
+        initStrategyData,
+        OP_TOKEN_ADDRESS,
+        0,
+        [1, programName],
+        [connectedAddress],
+        {
+          gasLimit: ethers.utils.hexlify(3000000),
+        },
+      );
+
+      console.log("Pool creation result:", createPoolResult);
+
+      const receipt = await createPoolResult.wait();
+
+      if (receipt.status === 0) {
+        throw new Error("Transaction failed. Check console for details.");
+      }
+
+      const poolCreatedEvent = receipt.events.find(
+        (event) => event.event === "PoolCreated",
+      );
+
+      if (!poolCreatedEvent) {
+        console.error("All events:", receipt.events);
+        throw new Error(
+          "PoolCreated event not found in transaction receipt. Check console for all events.",
+        );
+      }
+
+      const poolId = poolCreatedEvent.args.poolId;
+      console.log("Pool created with ID:", poolId);
+
+      onSuccess && onSuccess({ id: poolId, name: programName });
+      onClose();
+    } catch (err) {
+      console.error("Failed to create program:", err);
+      handleError(err);
+    }
+  };
+
+  const handleError = (err) => {
+    let errorMessage = "An unknown error occurred";
+    let detailedErrorMessage = JSON.stringify(
+      err,
+      Object.getOwnPropertyNames(err),
+      2,
+    );
+
+    if (err instanceof Error) {
+      errorMessage = err.message;
+    }
+
+    if (err.reason) {
+      errorMessage = `Contract error: ${err.reason}`;
+    }
+
+    if (err.data) {
+      try {
+        const decodedError = alloContract.interface.parseError(err.data);
+        if (decodedError) {
+          errorMessage = `Contract Error: ${decodedError.name}`;
+          detailedErrorMessage = JSON.stringify(decodedError, null, 2);
+          console.error("Decoded contract error:", decodedError);
+        } else {
+          const customErrorId = err.data.slice(0, 10);
+          const customErrors = {
+            "0x08c379a0": "Error(string)",
+          };
+          if (customErrors[customErrorId]) {
+            const decodedCustomError = ethers.utils.defaultAbiCoder.decode(
+              [customErrors[customErrorId]],
+              `0x${err.data.slice(10)}`,
+            );
+            errorMessage = `Custom Error: ${decodedCustomError[0]}`;
+            detailedErrorMessage = JSON.stringify(decodedCustomError, null, 2);
+          }
+        }
+      } catch (parseError) {
+        console.error("Failed to parse contract error:", parseError);
+        detailedErrorMessage +=
+          "\n\nFailed to parse contract error: " +
+          JSON.stringify(parseError, Object.getOwnPropertyNames(parseError), 2);
+      }
+    }
+
+    setError(`Error: ${errorMessage}`);
+    setDetailedError(detailedErrorMessage);
   };
 
   return (
-    <div className={styles.container}>
-      <h1 className={styles.title}>Allo Dashboard</h1>
-      <div className={styles.connectWalletContainer}>
-        <button
-          onClick={handleConnect}
-          disabled={isConnecting}
-          className={styles.button}
-        >
-          {isConnecting ? "Connecting..." : "Connect to MetaMask"}
-        </button>
-        {error && <p className={styles.error}>{error}</p>}
-      </div>
-      {walletAddress && (
-        <>
-          <div className={styles.infoSection}>
-            <p>Connected Wallet Address: {walletAddress}</p>
-            <p>Base Fee: {baseFee} ETH</p>
-            <p>Percentage Fee: {percentFee}%</p>
-            <p>Treasury Address: {treasury}</p>
-            <div>
-              <input
-                type="text"
-                value={newPercentFee}
-                onChange={(e) => setNewPercentFee(e.target.value)}
-                placeholder="New Percentage Fee"
-              />
-              <button
-                onClick={handleUpdatePercentFee}
-                className={styles.button}
-              >
-                Update Percentage Fee
-              </button>
-            </div>
-            <div>
-              <input
-                type="text"
-                value={newBaseFee}
-                onChange={(e) => setNewBaseFee(e.target.value)}
-                placeholder="New Base Fee (ETH)"
-              />
-              <button onClick={handleUpdateBaseFee} className={styles.button}>
-                Update Base Fee
-              </button>
-            </div>
-            <div>
-              <input
-                type="text"
-                value={newTreasury}
-                onChange={(e) => setNewTreasury(e.target.value)}
-                placeholder="New Treasury Address"
-              />
-              <button onClick={handleUpdateTreasury} className={styles.button}>
-                Update Treasury
-              </button>
-            </div>
-            <div>
-              <button
-                onClick={openCreateProgramModal}
-                className={styles.button}
-              >
-                Create Program
-              </button>
-            </div>
+    <div className={styles.modalContent}>
+      <h2 className={styles.textBlack}>Create a Grant Program</h2>
+      {!connectedAddress ? (
+        <button onClick={connectToMetaMask}>Connect to MetaMask</button>
+      ) : !isStrategyApproved ? (
+        <div>
+          <p>Strategy is not approved for cloning. Please approve it first.</p>
+          <button onClick={approveStrategy} disabled={isApprovingStrategy}>
+            {isApprovingStrategy ? "Approving..." : "Approve Strategy"}
+          </button>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit}>
+          <div className={styles.formGroup}>
+            <label htmlFor="programName">Program Name</label>
+            <input
+              id="programName"
+              type="text"
+              value={programName}
+              onChange={(e) => setProgramName(e.target.value)}
+              required
+            />
           </div>
-          <div className={styles.programsSection}>
-            <h2>Programs</h2>
-            <ProgramsGrid programs={programs} />
-          </div>
-        </>
+          <button type="submit" className={styles.submitButton}>
+            Create Program
+          </button>
+        </form>
       )}
-      {isCreateProgramModalOpen && (
-        <CreateProgramForm
-          onClose={closeCreateProgramModal}
-          onSuccess={handleCreateProgramSuccess}
-          connectedAddress={walletAddress}
-        />
+      {error && (
+        <div className={styles.error}>
+          {error}
+          <button onClick={() => setShowErrorDetails(!showErrorDetails)}>
+            {showErrorDetails ? "Hide" : "Show"} Details
+          </button>
+          {showErrorDetails && (
+            <pre className={styles.errorDetails}>{detailedError}</pre>
+          )}
+        </div>
       )}
     </div>
   );
 };
 
-export default Allo;
+export default CreateProgramForm;
