@@ -217,11 +217,11 @@ const Allo: React.FC = () => {
         </>
       )}
       {isCreateProgramModalOpen && (
-        <CreateProgramForm
-          onClose={closeCreateProgramModal}
-          onSuccess={handleCreateProgramSuccess}
-          connectedAddress={walletAddress}
-        />
+      <CreateProgramForm
+        onClose={closeCreateProgramModal}
+        onSuccess={handleCreateProgramSuccess}
+        connectedAddress={walletAddress}
+      />
       )}
     </div>
   );

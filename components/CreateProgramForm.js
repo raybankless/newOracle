@@ -8,7 +8,7 @@ const REGISTRY_CONTRACT_ADDRESS = "0x3787d9680fc5EB34c5f5F75e793d93C98f07d952";
 const VAULT_STRATEGY_ADDRESS = "0xeED429051B60b77F0492435D6E3F6115d272fE93";
 const OP_TOKEN_ADDRESS = "0x4200000000000000000000000000000000000042";
 
-const CreateProgramForm = ({ onClose, onSuccess }) => {
+const CreateProgramForm = ({ onClose, onSuccess, connectedAddress }) => {
   const [programName, setProgramName] = useState("");
   const [error, setError] = useState(null);
   const [detailedError, setDetailedError] = useState(null);
@@ -17,7 +17,6 @@ const CreateProgramForm = ({ onClose, onSuccess }) => {
   const [isApprovingStrategy, setIsApprovingStrategy] = useState(false);
   const [signer, setSigner] = useState(null);
   const [allo, setAllo] = useState(null);
-  const [connectedAddress, setConnectedAddress] = useState(null);
 
   useEffect(() => {
     const checkStrategyApproval = async () => {
