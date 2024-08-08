@@ -12,15 +12,22 @@ const ABI = [
   "function createPool(bytes32,address,bytes,address,uint256,(uint256,string),address[]) external returns (uint256)",
   "function updateBaseFee(uint256 _baseFee) external",
   "function updateTreasury(address payable _treasury) external",
-  "function getPool(uint256 _poolId) external view returns (tuple(bytes32 profileId, address strategy, (uint256, string) metadata, address token, bytes32 managerRole, bytes32 adminRole))"
-  ];
+  "function getPool(uint256 _poolId) external view returns (tuple(bytes32 profileId, address strategy, (uint256, string) metadata, address token, bytes32 managerRole, bytes32 adminRole))",
+];
 
-export const alloInteraction = (provider) => {
-  const contract = new ethers.Contract(ALLO_CONTRACT_ADDRESS, ABI, provider);
+export const alloInteraction = () => {
+  if (!window.ethereum) {
+    throw new Error(
+      "MetaMask is not installed. Please install it to continue.",
+    );
+  }
+
+  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  const signer = provider.getSigner();
+  const contract = new ethers.Contract(ALLO_CONTRACT_ADDRESS, ABI, signer);
 
   return {
     getFeeDenominator: async () => {
-      
       return await contract.getFeeDenominator();
     },
     updatePercentFee: async (signer, newPercentFee) => {
@@ -47,13 +54,31 @@ export const alloInteraction = (provider) => {
     getRegistry: async () => {
       return await contract.getRegistry();
     },
-    createPool: async (signer, profileId, strategy, initData, token, amount, metadata, managers, options = {}) => {
+    createPool: async (
+      signer,
+      profileId,
+      strategy,
+      initData,
+      token,
+      amount,
+      metadata,
+      managers,
+      options = {},
+    ) => {
       const contractWithSigner = contract.connect(signer);
-      return await contractWithSigner.createPool(profileId, strategy, initData, token, amount, metadata, managers, options);
+      return await contractWithSigner.createPool(
+        profileId,
+        strategy,
+        initData,
+        token,
+        amount,
+        metadata,
+        managers,
+        options,
+      );
     },
     getPool: async (poolId) => {
       return await contract.getPool(poolId);
-    }
+    },
   };
-  
 };

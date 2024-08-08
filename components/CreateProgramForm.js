@@ -59,14 +59,17 @@ const CreateProgramForm = ({ onClose, onSuccess, connectedAddress }) => {
     checkStrategyApproval();
 
     const setupAllo = async () => {
-      if (window.ethereum) {
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const signer = provider.getSigner();
-        setAllo(alloInteraction(signer));
-        console.log("Allo contract set:", allo);
+      try {
+        const alloInstance = await alloInteraction();
+        setAllo(alloInstance);
+        console.log("Allo contract set:", alloInstance);
+      } catch (error) {
+        console.error("Error setting up Allo contract:", error);
+        setError("Failed to set up Allo contract. Please try again.");
       }
     };
     setupAllo();
+    
   }, [alloContract, isCheckingStrategy]);
 
   const approveStrategy = async () => {
