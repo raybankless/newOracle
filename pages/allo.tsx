@@ -42,7 +42,7 @@ const Allo: React.FC = () => {
         console.log("Connected to MetaMask:", account);
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
-        const allo = alloInteraction(signer);
+        const allo = alloInteraction();
         fetchContractInfo(allo);
       } else {
         throw new Error("MetaMask is not installed");
