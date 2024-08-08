@@ -13,6 +13,20 @@ const REGISTRY_CONTRACT_ADDRESS = "0x3787d9680fc5EB34c5f5F75e793d93C98f07d952";
 const VAULT_STRATEGY_ADDRESS = "0xeED429051B60b77F0492435D6E3F6115d272fE93";
 const OP_TOKEN_ADDRESS = "0x4200000000000000000000000000000000000042";
 
+/**
+ * @typedef {Object} Program
+ * @property {string} id - The ID of the program.
+ * @property {string} name - The name of the program.
+ */
+/**
+ * @typedef {Object} CreateProgramFormProps
+ * @property {() => void} onClose - Function to call when closing the form.
+ * @property {(program: Program) => void} onSuccess - Function to call on successful creation of a program.
+ * @property {string} connectedAddress - The connected wallet address.
+ */
+/**
+ * @param {CreateProgramFormProps} props
+ */
 const CreateProgramForm = ({ onClose, onSuccess, connectedAddress }) => {
   const [programName, setProgramName] = useState("");
   const [error, setError] = useState(null);
