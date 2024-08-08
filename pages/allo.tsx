@@ -221,11 +221,6 @@ const Allo: React.FC = () => {
           onClose={closeCreateProgramModal}
           onSuccess={handleCreateProgramSuccess}
           connectedAddress={walletAddress}
-          alloInteraction={() =>
-            alloInteraction(
-              new ethers.providers.Web3Provider(window.ethereum).getSigner(),
-            )
-          }
         />
       )}
     </div>
