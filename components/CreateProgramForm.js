@@ -123,6 +123,8 @@ const CreateProgramForm = ({ onClose, onSuccess, connectedAddress }) => {
       const profileId = profileCreatedEvent.args[0];
       console.log("Profile ID:", profileId);
 
+      console.log("Anchor Address:", profileCreatedEvent.args.anchor);
+
       // Create pool
       console.log("Creating pool...");
       const initStrategyData = ethers.utils.defaultAbiCoder.encode(

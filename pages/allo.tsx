@@ -40,8 +40,6 @@ const Allo: React.FC = () => {
         const account = await wallet.connect({ client });
         setWalletAddress(account.address);
         console.log("Connected to MetaMask:", account);
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const signer = provider.getSigner();
         const allo = alloInteraction();
         fetchContractInfo(allo);
       } else {
@@ -76,8 +74,6 @@ const Allo: React.FC = () => {
 
   const handleUpdatePercentFee = async () => {
     try {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
       const allo = alloInteraction();
       const tx = await allo.updatePercentFee(ethers.utils.parseUnits(newPercentFee, 16));
       await tx.wait();
@@ -92,9 +88,7 @@ const Allo: React.FC = () => {
 
   const handleUpdateBaseFee = async () => {
     try {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const allo = alloInteraction(signer);
+      const allo = alloInteraction();
       const tx = await allo.updateBaseFee(ethers.utils.parseEther(newBaseFee));
       await tx.wait();
       setNewBaseFee("");
@@ -108,9 +102,7 @@ const Allo: React.FC = () => {
 
   const handleUpdateTreasury = async () => {
     try {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const allo = alloInteraction(signer);
+      const allo = alloInteraction();
       const tx = await allo.updateTreasury(newTreasury);
       await tx.wait();
       setNewTreasury("");

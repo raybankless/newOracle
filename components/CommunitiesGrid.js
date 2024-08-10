@@ -1,7 +1,9 @@
 // components/CommunitiesGrid.js
 import styles from '../styles/CommunitiesGrid.module.css';
 const CommunitiesGrid = ({ communities, onCommunitySelect }) => {
+  
   return (
+    
     <div className={styles.communitiesGrid}>
       {communities.map((community) => (
         <div key={community._id} className={styles.communityCard} onClick={() => onCommunitySelect(community.safeWallet)}>
