@@ -3,7 +3,7 @@ import { useAddress } from "@thirdweb-dev/react";
 import { ethers } from "ethers";
 import styles from "../styles/CreateEventModal.module.css";
 import { useAlloInteraction } from "../components/AlloContractInteraction";
-import { useRegistryInteraction } from "../utils/registryInteraction";
+import { useRegistryInteraction } from "../components/registryInteraction";
 
 const VAULT_STRATEGY_ADDRESS = "0xeED429051B60b77F0492435D6E3F6115d272fE93";
 const OP_TOKEN_ADDRESS = "0x4200000000000000000000000000000000000042";
