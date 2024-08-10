@@ -39,13 +39,13 @@ const Sidebar = () => {
             Events
           </Link>
           <Link
-            href="/"
+            href="/task-boards"
             className={`${styles.navItem} ${isActive("/task-boards")}`}
           >
             Task Boards
           </Link>
           <Link
-            href="/"
+            href="/communities"
             className={`${styles.navItem} ${isActive("/communities")}`}
           >
             Communities

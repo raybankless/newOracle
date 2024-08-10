@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { useAddress } from "@thirdweb-dev/react";
 import Sidebar from "../components/Sidebar";
 import EventsGrid from "../components/EventsGrid";
-import styles from "../styles/Dashboard.module.css"; // Make sure to update/create this CSS file
+import AlloComponent from "../components/AlloComponent"; // Import the AlloComponent
+import styles from "../styles/Dashboard.module.css"; 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import Link from "next/link";
@@ -22,9 +23,9 @@ const Dashboard = () => {
   const [showCreateEventModal, setShowCreateEventModal] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState("");
   const router = useRouter();
-  const [qrSend, setQrSend] = useState(null);
+  const [qrSend, setQrSend] = useState<any | null>(null);
   const [isCommunityModalOpen, setIsCommunityModalOpen] = useState(false);
-  const [selectedCommunityId, setSelectedCommunityId] = useState("");
+  const [selectedCommunityId, setSelectedCommunityId] = useState<string>("");
   const [showCommunityDashboard, setShowCommunityDashboard] = useState(false);
   const [communities, setCommunities] = useState([]);
   const [address, setAddress] = useState("");
@@ -40,7 +41,7 @@ const Dashboard = () => {
 
   const handleCommunitySelect = (communityId: string) => {
     setSelectedCommunityId(communityId);
-    setShowCommunityDashboard(true); // Assuming you have a state to toggle the community dashboard visibility
+    setShowCommunityDashboard(true); 
   };
 
   interface EthereumError extends Error {
@@ -50,30 +51,24 @@ const Dashboard = () => {
   async function switchToOptimism() {
     if (window.ethereum) {
       try {
-        // Request to switch to the Optimism network (Mainnet)
         await window.ethereum.request({
           method: "wallet_switchEthereumChain",
-          params: [{ chainId: "0xa" }], // 0xa is the chain ID for Optimism Mainnet
+          params: [{ chainId: "0xa" }],
         });
       } catch (switchError) {
-        // This error code indicates that the chain has not been added to MetaMask.
-        // assert the type of switchError to be EthereumError
         const error = switchError as EthereumError;
         if (error.code === 4902) {
           try {
-            // Request to add the Optimism network to MetaMask.
             await window.ethereum.request({
               method: "wallet_addEthereumChain",
               params: [
                 {
                   chainId: "0xa",
                   rpcUrl: "https://mainnet.optimism.io",
-                  // Additional parameters like the chain name, symbol, and block explorer can be added here.
                 },
               ],
             });
           } catch (addError) {
-            // You can assert addError type similarly if needed
             console.error("Error adding Optimism network:", addError);
           }
         }
@@ -99,7 +94,6 @@ const Dashboard = () => {
       }
     };
 
-    // Fetch all communities
     const fetchAllCommunities = async () => {
       try {
         const response = await fetch('/api/communities/getAll');
@@ -116,12 +110,11 @@ const Dashboard = () => {
 
     fetchAllEvents();
     fetchAllCommunities();
-    }, []);
+  }, []);
 
   useEffect(() => {
     const handleQRData = async () => {
       let queryData = router.query.data;
-      // This ensures queryData is a string
       if (Array.isArray(queryData)) {
         queryData = queryData[0];
       }
@@ -189,6 +182,8 @@ const Dashboard = () => {
             />
             <h2>Events</h2>
             <EventsGrid events={events.slice(0, 8)} onEventSelect={handleEventSelect} />
+            <h2>Programs</h2>
+            <AlloComponent />  {/* AlloComponent is now integrated here */}
             <h2>Communities</h2>
             <CommunitiesGrid
               communities={communities.slice(0, 8)}
