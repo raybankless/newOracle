@@ -1,4 +1,10 @@
-import { useContract, useContractRead, useContractWrite } from "@thirdweb-dev/react";
+import {
+  useContract,
+  useContractRead,
+  useContractWrite,
+} from "@thirdweb-dev/react";
+
+const ALLO_CONTRACT_ADDRESS = "0xf5f35867AEccF350B55b90E41044F47428950920";
 
 export const useAlloInteraction = () => {
   const { contract } = useContract(ALLO_CONTRACT_ADDRESS);
