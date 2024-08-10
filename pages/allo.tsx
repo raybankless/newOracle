@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { useAddress, useSetActiveWallet } from "@thirdweb-dev/react";
+import { useAddress } from "@thirdweb-dev/react";
 import { createWallet } from "thirdweb/wallets";
-import { useConnect } from "thirdweb/react";
+import { useConnect, useSetActiveWallet } from "thirdweb/react";
 import { createThirdwebClient } from "thirdweb";
 import { ethers } from "ethers";
 import CreateProgramForm from "../components/CreateProgramForm";
@@ -51,7 +51,7 @@ const Allo = () => {
         const account = await wallet.connect({
           client, // Pass the thirdweb client here
         });
-        await setActiveAccount(account);
+        await setActiveAccount(wallet);
         console.log("Connected to MetaMask:", account.address);
         return wallet;
       });
