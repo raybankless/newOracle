@@ -1,6 +1,6 @@
   import React, { useState } from 'react';
 import styles from '../styles/CreateEventModal.module.css';
-import { useAddress } from "@thirdweb-dev/react";
+import { useAddress } from "thirdweb/react";
 // /components/CreateEventModal.js - Modal component with form for event creation
 const CreateEventModal = ({setShowModal, onEventCreated}) => {
   const [eventName, setEventName] = useState("");

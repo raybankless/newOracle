@@ -1,11 +1,9 @@
 // components/MintEvent.js
 
-import { useAddress, useWallet, useSigner } from "@thirdweb-dev/react";
-import { useActiveAccount, useConnectedWallets, useActiveWallet } from "thirdweb/react";
+import { useAddress, useSigner } from "thirdweb/react";
 import { createThirdwebClient } from "thirdweb";
-import {Optimism} from "@thirdweb-dev/chains";
+import {Optimism} from "thirdweb/chains";
 import styles from "../styles/MintEvent.module.css";
-import { ethers } from "ethers";
 import {
   HypercertClient,
   formatHypercertData,

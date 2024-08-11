@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useAddress } from "@thirdweb-dev/react";
 import { ethers } from "ethers";
 import styles from "../styles/CreateEventModal.module.css";
-import { useAlloInteraction } from "../components/AlloContractInteraction";
-import { useRegistryInteraction } from "../components/registryInteraction";
+import { alloInteraction } from "../components/AlloContractInteraction";
+import { registryInteraction } from "../components/registryInteraction";
 
 const VAULT_STRATEGY_ADDRESS = "0xeED429051B60b77F0492435D6E3F6115d272fE93";
 const OP_TOKEN_ADDRESS = "0x4200000000000000000000000000000000000042";
@@ -11,68 +11,47 @@ const OP_TOKEN_ADDRESS = "0x4200000000000000000000000000000000000042";
 const CreateProgramForm = ({ onClose, onSuccess }) => {
   const [programName, setProgramName] = useState("");
   const [error, setError] = useState(null);
-  const [detailedError, setDetailedError] = useState(null);
-  const [showErrorDetails, setShowErrorDetails] = useState(false);
-  const [isApprovingStrategy, setIsApprovingStrategy] = useState(false);
   const address = useAddress();
 
-  const { createPool, getRegistry } = useAlloInteraction();
-  const { createProfile } = useRegistryInteraction();
-
-  const { contract: alloContract } = useAlloInteraction();
-
-  const { data: isCloneableStrategy, isLoading: isCheckingStrategy } =
-    useContractRead(alloContract, "isCloneableStrategy", [
-      VAULT_STRATEGY_ADDRESS,
-    ]);
-
-  const { mutateAsync: addToCloneableStrategies } = useContractWrite(
-    alloContract,
-    "addToCloneableStrategies",
-  );
+  const allo = alloInteraction();
+  const registry = registryInteraction();
 
   useEffect(() => {
-    const fetchContractInfo = async () => {
-      try {
-        const [percentFee, baseFee, treasury] = await Promise.all([
-          getPercentFee.data,
-          getBaseFee.data,
-          getTreasury.data,
-        ]);
-        console.log("Contract info fetched:", {
-          percentFee,
-          baseFee,
-          treasury,
-        });
-      } catch (err) {
-        console.error("Failed to fetch contract info:", err);
-      }
-    };
-    fetchContractInfo();
-  }, [getPercentFee, getBaseFee, getTreasury]);
-
-  const approveStrategy = async () => {
-    setIsApprovingStrategy(true);
-    try {
-      console.log("Adding strategy to cloneable list...");
-      const result = await addToCloneableStrategies({
-        args: [VAULT_STRATEGY_ADDRESS],
-      });
-      console.log("Strategy added to cloneable list:", result);
-    } catch (error) {
-      console.error("Failed to approve strategy:", error);
-      setError(
-        "Failed to approve strategy. Please try again or contact the administrator.",
+    const handlePoolCreated = (
+      poolId,
+      profileId,
+      strategy,
+      token,
+      amount,
+      metadata,
+    ) => {
+      console.log(
+        "Pool Created Event:",
+        poolId,
+        profileId,
+        strategy,
+        token,
+        amount,
+        metadata,
       );
-    } finally {
-      setIsApprovingStrategy(false);
-    }
-  };
+    };
+
+    const handleStrategyApproved = (strategy) => {
+      console.log("Strategy Approved Event:", strategy);
+    };
+
+    allo.listenToPoolCreated(handlePoolCreated);
+    allo.listenToStrategyApproved(handleStrategyApproved);
+
+    return () => {
+      allo.contract.off("PoolCreated", handlePoolCreated);
+      allo.contract.off("StrategyApproved", handleStrategyApproved);
+    };
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-    setDetailedError(null);
 
     if (!address) {
       setError("Please connect your wallet first");
@@ -81,9 +60,7 @@ const CreateProgramForm = ({ onClose, onSuccess }) => {
 
     try {
       console.log("Creating profile...");
-      const registryContract = await getRegistry();
-      const createProfileResult = await registryContract.call(
-        "createProfile",
+      const createProfileResult = await registry.createProfile(
         Date.now(),
         programName,
         [1, ""],
@@ -91,19 +68,15 @@ const CreateProgramForm = ({ onClose, onSuccess }) => {
         [],
       );
 
-      const profileCreatedEvent = createProfileResult.receipt.events.find(
+      const profileCreatedEvent = createProfileResult.events.find(
         (event) => event.event === "ProfileCreated",
       );
-
-      if (!profileCreatedEvent) {
-        throw new Error(
-          "ProfileCreated event not found in transaction receipt.",
-        );
-      }
-
       const profileId = profileCreatedEvent.args[0];
+      const anchorId = profileCreatedEvent.args.anchor;
       console.log("Profile ID:", profileId);
-      console.log("Anchor Address:", profileCreatedEvent.args.anchor);
+      console.log("Anchor ID:", anchorId);
+
+      
 
       console.log("Creating pool...");
       const initStrategyData = ethers.utils.defaultAbiCoder.encode(
@@ -111,27 +84,22 @@ const CreateProgramForm = ({ onClose, onSuccess }) => {
         [0, 0, 0, 0],
       );
 
-      const createPoolResult = await createPool.mutateAsync({
-        args: [
-          profileId,
-          VAULT_STRATEGY_ADDRESS,
-          initStrategyData,
-          OP_TOKEN_ADDRESS,
-          0, // 0 initial funding
-          [1, programName], // metadata
-          [address], // managers (only connected address)
-        ],
-        overrides: {
-          gasLimit: 3000000, // Adjust this value based on your needs
-        },
-      });
+      const createPoolResult = await allo.createPool(
+        profileId,
+        VAULT_STRATEGY_ADDRESS,
+        initStrategyData,
+        OP_TOKEN_ADDRESS,
+        0,
+        [1, programName],
+        [address],
+      );
 
-      const poolCreatedEvent = createPoolResult.receipt.events.find(
+      const poolCreatedEvent = createPoolResult.events.find(
         (event) => event.event === "PoolCreated",
       );
 
       if (!poolCreatedEvent) {
-        console.error("All events:", createPoolResult.receipt.events);
+        console.error("All events:", createPoolResult.events);
         throw new Error("PoolCreated event not found in transaction receipt.");
       }
 
@@ -142,44 +110,11 @@ const CreateProgramForm = ({ onClose, onSuccess }) => {
       onClose();
     } catch (err) {
       console.error("Failed to create program:", err);
-      handleError(err);
+      setError(
+        "Failed to create program. Please check the console for details.",
+      );
     }
   };
-
-  const handleError = (err) => {
-    let errorMessage = "An unknown error occurred";
-    let detailedErrorMessage = JSON.stringify(
-      err,
-      Object.getOwnPropertyNames(err),
-      2,
-    );
-
-    if (err instanceof Error) {
-      errorMessage = err.message;
-    }
-
-    if (err.reason) {
-      errorMessage = `Contract error: ${err.reason}`;
-    }
-
-    setError(`Error: ${errorMessage}`);
-    setDetailedError(detailedErrorMessage);
-  };
-
-  if (isCheckingStrategy) {
-    return <div>Checking strategy approval...</div>;
-  }
-
-  if (!isCloneableStrategy) {
-    return (
-      <div>
-        <p>Strategy is not approved for cloning. Please approve it first.</p>
-        <button onClick={approveStrategy} disabled={isApprovingStrategy}>
-          {isApprovingStrategy ? "Approving..." : "Approve Strategy"}
-        </button>
-      </div>
-    );
-  }
 
   return (
     <div className={styles.modalContent}>
@@ -199,17 +134,7 @@ const CreateProgramForm = ({ onClose, onSuccess }) => {
           Create Program
         </button>
       </form>
-      {error && (
-        <div className={styles.error}>
-          {error}
-          <button onClick={() => setShowErrorDetails(!showErrorDetails)}>
-            {showErrorDetails ? "Hide" : "Show"} Details
-          </button>
-          {showErrorDetails && (
-            <pre className={styles.errorDetails}>{detailedError}</pre>
-          )}
-        </div>
-      )}
+      {error && <div className={styles.error}>{error}</div>}
     </div>
   );
 };

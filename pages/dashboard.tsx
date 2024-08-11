@@ -1,9 +1,10 @@
 // pages/dashboard.tsx
+import dynamic from 'next/dynamic';
 import { useEffect, useState } from "react";
 import { useAddress } from "@thirdweb-dev/react";
 import Sidebar from "../components/Sidebar";
 import EventsGrid from "../components/EventsGrid";
-import AlloComponent from "../components/AlloComponent"; // Import the AlloComponent
+const AlloComponent = dynamic(() => import('../components/AlloComponent'), { ssr: false });
 import styles from "../styles/Dashboard.module.css"; 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";

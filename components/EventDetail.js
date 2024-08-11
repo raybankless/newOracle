@@ -13,7 +13,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import Link from "next/link";
 import AddContributionModal from "./AddContributionModal";
-import { useSigner, useAddress } from "@thirdweb-dev/react";
+import { useSigner, useAddress } from "thirdweb/react";
 import MintEventButton from "../components/MintEvent";
 import ContributorsTable from "../components/ContributorsTable";
 

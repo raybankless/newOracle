@@ -1,24 +1,14 @@
-// components/AlloComponent.js
 import React, { useState, useEffect } from "react";
-import { useAddress } from "@thirdweb-dev/react";
-import { createWallet } from "thirdweb/wallets";
-import { useConnect, useSetActiveWallet } from "thirdweb/react";
-import { createThirdwebClient } from "thirdweb";
 import { ethers } from "ethers";
 import CreateProgramForm from "./CreateProgramForm";
 import ProgramsGrid from "./ProgramsGrid";
 import styles from "../styles/Allo.module.css";
-import { useAlloInteraction } from "./AlloContractInteraction";
-
-const client = createThirdwebClient({
-  clientId: "22f2a1f2653b1f091455a59951c2ecca", // Replace with your actual client ID
-});
+import { alloInteraction } from "./AlloContractInteraction";
 
 const AlloComponent = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState("");
-  const [isCreateProgramModalOpen, setIsCreateProgramModalOpen] =
-    useState(false);
+  const [isCreateProgramModalOpen, setIsCreateProgramModalOpen] = useState(false);
   const [programs, setPrograms] = useState([]);
   const [percentFee, setPercentFee] = useState("");
   const [baseFee, setBaseFee] = useState("");
@@ -26,36 +16,25 @@ const AlloComponent = () => {
   const [newPercentFee, setNewPercentFee] = useState("");
   const [newBaseFee, setNewBaseFee] = useState("");
   const [newTreasury, setNewTreasury] = useState("");
-  const setActiveAccount = useSetActiveWallet();
 
-  const {
-    connect,
-    isConnecting: isThirdwebConnecting,
-    error: thirdwebError,
-  } = useConnect();
-  const address = useAddress();
-
-  const {
-    getPercentFee,
-    getBaseFee,
-    getTreasury,
-    updatePercentFee,
-    updateBaseFee,
-    updateTreasury,
-  } = useAlloInteraction();
+  const [address, setAddress] = useState("");
+  const interaction = alloInteraction(); 
 
   const handleConnect = async () => {
+    if (!window.ethereum) {
+      setError("MetaMask is not installed!");
+      return;
+    }
+
     try {
       setIsConnecting(true);
-      await connect(async () => {
-        const wallet = createWallet("io.metamask");
-        const account = await wallet.connect({
-          client, // Pass the thirdweb client here
-        });
-        await setActiveAccount(wallet);
-        console.log("Connected to MetaMask:", account.address);
-        return wallet;
-      });
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      const signer = provider.getSigner();
+      const userAddress = await signer.getAddress();
+      console.log("Connected to MetaMask:", userAddress);
+
+      setAddress(userAddress);
     } catch (err) {
       console.error("MetaMask connection failed:", err);
       setError(err.message || "An unknown error occurred");
@@ -66,9 +45,9 @@ const AlloComponent = () => {
 
   const fetchContractInfo = async () => {
     try {
-      const percentFeeValue = await getPercentFee.data;
-      const baseFeeValue = await getBaseFee.data;
-      const treasuryAddress = await getTreasury.data;
+      const percentFeeValue = await interaction.getPercentFee();
+      const baseFeeValue = await interaction.getBaseFee();
+      const treasuryAddress = await interaction.getTreasury();
 
       setPercentFee(percentFeeValue?.toString() || "");
       setBaseFee(baseFeeValue?.toString() || "");
@@ -83,13 +62,11 @@ const AlloComponent = () => {
     if (address) {
       fetchContractInfo();
     }
-  }, [address, getPercentFee, getBaseFee, getTreasury]);
+  }, [address]);
 
   const handleUpdatePercentFee = async () => {
     try {
-      await updatePercentFee.mutateAsync({
-        args: [ethers.utils.parseUnits(newPercentFee, 16)],
-      });
+      await interaction.updatePercentFee(ethers.utils.parseUnits(newPercentFee, 18));
       setNewPercentFee("");
       fetchContractInfo();
       console.log("Percent fee updated successfully");
@@ -101,9 +78,7 @@ const AlloComponent = () => {
 
   const handleUpdateBaseFee = async () => {
     try {
-      await updateBaseFee.mutateAsync({
-        args: [ethers.utils.parseEther(newBaseFee)],
-      });
+      await interaction.updateBaseFee(ethers.utils.parseEther(newBaseFee));
       setNewBaseFee("");
       fetchContractInfo();
       console.log("Base fee updated successfully");
@@ -115,7 +90,7 @@ const AlloComponent = () => {
 
   const handleUpdateTreasury = async () => {
     try {
-      await updateTreasury.mutateAsync({ args: [newTreasury] });
+      await interaction.updateTreasury(newTreasury);
       setNewTreasury("");
       fetchContractInfo();
       console.log("Treasury updated successfully");
@@ -148,12 +123,10 @@ const AlloComponent = () => {
       <div className={styles.connectWalletContainer}>
         <button
           onClick={handleConnect}
-          disabled={isConnecting || isThirdwebConnecting}
+          disabled={isConnecting}
           className={styles.button}
         >
-          {isConnecting || isThirdwebConnecting
-            ? "Connecting..."
-            : "Connect to MetaMask"}
+          {isConnecting ? "Connecting..." : "Connect to MetaMask"}
         </button>
         {error && <p className={styles.error}>{error}</p>}
       </div>
@@ -218,7 +191,7 @@ const AlloComponent = () => {
       {isCreateProgramModalOpen && (
         <CreateProgramForm
           onClose={closeCreateProgramModal}
-          onSuccess={handleCreateProgramSuccess}
+          onSubmit={handleCreateProgramSuccess}
         />
       )}
     </div>
