@@ -1,15 +1,17 @@
-import { ethers } from "ethers";
+/*import { ethers } from "ethers";
 
 const REGISTRY_CONTRACT_ADDRESS = "0x3787d9680fc5EB34c5f5F75e793d93C98f07d952";
 const ABI = [
   "function createProfile(uint256 _nonce, string memory _name, (uint256, string) memory _metadata, address _owner, address[] memory _members) external returns (bytes32)",
-  "function getProfileById(bytes32 _profileId) external view returns (address, string memory, uint256, address, bytes[])",
+  "function getProfileById(bytes32 _profileId) external view returns (tuple(bytes32 id, uint256 nonce, string name, (uint256, string) metadata, address owner, address anchor))",
+  "function getProfileByAnchor(address _anchor) external view returns (tuple(bytes32 id, uint256 nonce, string name, (uint256, string) metadata, address owner, address anchor))",
   "function updateProfileName(bytes32 _profileId, string memory _name) external returns (address)",
   "function updateProfileMetadata(bytes32 _profileId, (uint256, string) memory _metadata) external",
   "function updateProfilePendingOwner(bytes32 _profileId, address _pendingOwner) external",
   "function acceptProfileOwnership(bytes32 _profileId) external",
   "function addMembers(bytes32 _profileId, address[] memory _members) external",
   "function removeMembers(bytes32 _profileId, address[] memory _members) external",
+  "function isOwnerOfProfile(bytes32 _profileId, address _owner) external view returns (bool)",
   "event ProfileCreated(bytes32 indexed profileId, uint256 nonce, string name, (uint256, string) metadata, address owner, address anchor)",
 ];
 
@@ -34,6 +36,23 @@ export const registryInteraction = () => {
         return await contract.getProfileById(_profileId);
       } catch (error) {
         console.error("Failed to get profile by ID:", error);
+        throw error;
+      }
+    },
+    getProfileByAnchor: async (_anchor) => {
+      try {
+        return await contract.getProfileByAnchor(_anchor);
+      } catch (error) {
+        console.error("Failed to get profile by anchor:", error);
+        throw error;
+      }
+    },
+    isOwnerOfProfile: async (_profileId, walletAddress) => {
+      try {
+        const isOwner = await contract.isOwnerOfProfile(_profileId, walletAddress);
+        return isOwner;
+      } catch (error) {
+        console.error("Failed to check profile ownership:", error);
         throw error;
       }
     },
@@ -100,3 +119,4 @@ export const registryInteraction = () => {
     getSigner: () => signer,
   };
 };
+*/

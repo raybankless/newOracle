@@ -11,7 +11,7 @@
     "deploy": "next build && next export && npx thirdweb@latest upload out"
   },
   "dependencies": {
-    "@allo-team/allo-v2-sdk": "^1.0.77",
+    "@allo-team/allo-v2-sdk": "^1.0.78",
     "@fortawesome/fontawesome-svg-core": "^6.5.1",
     "@fortawesome/free-solid-svg-icons": "^6.5.1",
     "@fortawesome/react-fontawesome": "^0.2.0",
@@ -31,7 +31,7 @@
     "react-dom": "^18.2",
     "react-fontawesome": "^1.7.1",
     "thirdweb": "^5.43.2",
-    "viem": "^2.8.13"
+    "viem": "^2.19.4"
   },
   "devDependencies": {
     "@types/node": "^18.11.11",

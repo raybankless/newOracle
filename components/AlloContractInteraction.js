@@ -1,7 +1,7 @@
-// components/alloInteraction.js
+/* // components/alloInteraction.js
 import { ethers } from "ethers";
 
-const ALLO_CONTRACT_ADDRESS = "0xf5f35867AEccF350B55b90E41044F47428950920";
+const ALLO_CONTRACT_ADDRESS = "0xf5f35867aeccf350b55b90e41044f47428950920";
 const ABI = [
   "function getFeeDenominator() public pure returns (uint256)",
   "function updatePercentFee(uint256 _percentFee) external",
@@ -18,7 +18,7 @@ const ABI = [
   // Event signatures
   "event PoolCreated(uint256 indexed poolId, bytes32 profileId, address strategy, address token, uint256 amount, (uint256, string) metadata)",
   "event StrategyApproved(address indexed strategy)",
-  "event BaseFeePaid(uint256 indexed poolId, uint256 fee)"
+  "event BaseFeePaid(uint256 indexed poolId, uint256 fee)",
 ];
 
 export const alloInteraction = () => {
@@ -73,7 +73,7 @@ export const alloInteraction = () => {
     },
     addToCloneableStrategies: async (strategy) => {
       const tx = await contract.addToCloneableStrategies(strategy);
-      await tx.wait();  // wait for the transaction to be mined
+      await tx.wait(); // wait for the transaction to be mined
       return tx;
     },
     listenToPoolCreated: async (callback) => {
@@ -91,3 +91,24 @@ export const alloInteraction = () => {
     getSigner: () => signer,
   };
 };
+
+
+
+if (receipt.status === 'reverted') {
+  // Decode error from receipt
+  const error = decodeErrorResult({
+    data: receipt.logs[0].data, // or wherever your logs or revert reason data is
+    abi: allo_config_1.abi,
+  });
+
+
+
+
+
+
+
+
+
+*/
+
+

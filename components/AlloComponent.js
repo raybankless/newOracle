@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { ethers } from "ethers";
-import CreateProgramForm from "./CreateProgramForm";
+import { createWalletClient, custom, decodeErrorResult, createPublicClient, http } from "viem";
+import { optimism } from "viem/chains";
+import { Allo, Registry } from "@allo-team/allo-v2-sdk";
 import ProgramsGrid from "./ProgramsGrid";
 import styles from "../styles/Allo.module.css";
-import { alloInteraction } from "./AlloContractInteraction";
+import { abi, abi as alloAbi } from "@allo-team/allo-v2-sdk/dist/Allo/allo.config";
+
+const VAULT_STRATEGY_ADDRESS = "0xeED429051B60b77F0492435D6E3F6115d272fE93";
+const OP_TOKEN_ADDRESS = "0x4200000000000000000000000000000000000042";
 
 const AlloComponent = () => {
   const [isConnecting, setIsConnecting] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState("");
-  const [isCreateProgramModalOpen, setIsCreateProgramModalOpen] = useState(false);
   const [programs, setPrograms] = useState([]);
   const [percentFee, setPercentFee] = useState("");
   const [baseFee, setBaseFee] = useState("");
@@ -16,25 +20,58 @@ const AlloComponent = () => {
   const [newPercentFee, setNewPercentFee] = useState("");
   const [newBaseFee, setNewBaseFee] = useState("");
   const [newTreasury, setNewTreasury] = useState("");
-
   const [address, setAddress] = useState("");
-  const interaction = alloInteraction(); 
+  const [programName, setProgramName] = useState("");
+  const [walletClient, setWalletClient] = useState(null);
+
+  useEffect(() => {
+    const checkProvider = async () => {
+      if (typeof window.ethereum !== "undefined") {
+        const accounts = await window.ethereum.request({
+          method: "eth_requestAccounts",
+        });
+        const userAddress = accounts[0];
+
+        const client = createWalletClient({
+          account: userAddress,
+          chain: optimism,
+          transport: custom(window.ethereum),
+        });
+
+        setWalletClient(client);
+        setAddress(userAddress);
+        setIsConnected(true);
+      } else {
+        setError("Ethereum provider (MetaMask) is not installed.");
+      }
+    };
+    checkProvider();
+  }, []);
+
+  // Initialize SDK instances using the chain ID directly
+  const allo = walletClient ? new Allo({ chain: 10 }) : null;
+  const registry = walletClient ? new Registry({ chain: 10 }) : null;
 
   const handleConnect = async () => {
-    if (!window.ethereum) {
+    if (!walletClient) {
       setError("MetaMask is not installed!");
       return;
     }
 
     try {
       setIsConnecting(true);
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
-      const signer = provider.getSigner();
-      const userAddress = await signer.getAddress();
-      console.log("Connected to MetaMask:", userAddress);
+      const accounts = await window.ethereum.request({
+        method: "eth_requestAccounts",
+      });
+      const userAddress = accounts[0];
 
-      setAddress(userAddress);
+      if (userAddress) {
+        console.log("Connected to MetaMask:", userAddress);
+        setAddress(userAddress);
+        setIsConnected(true);
+      } else {
+        setError("Failed to retrieve account address.");
+      }
     } catch (err) {
       console.error("MetaMask connection failed:", err);
       setError(err.message || "An unknown error occurred");
@@ -44,10 +81,11 @@ const AlloComponent = () => {
   };
 
   const fetchContractInfo = async () => {
+    if (!allo) return;
     try {
-      const percentFeeValue = await interaction.getPercentFee();
-      const baseFeeValue = await interaction.getBaseFee();
-      const treasuryAddress = await interaction.getTreasury();
+      const percentFeeValue = await allo.getPercentFee();
+      const baseFeeValue = await allo.getBaseFee();
+      const treasuryAddress = await allo.getTreasury();
 
       setPercentFee(percentFeeValue?.toString() || "");
       setBaseFee(baseFeeValue?.toString() || "");
@@ -65,8 +103,9 @@ const AlloComponent = () => {
   }, [address]);
 
   const handleUpdatePercentFee = async () => {
+    if (!allo) return;
     try {
-      await interaction.updatePercentFee(ethers.utils.parseUnits(newPercentFee, 18));
+      await allo.updatePercentFee(BigInt(newPercentFee) * BigInt(10 ** 18)); // Convert percentage to wei
       setNewPercentFee("");
       fetchContractInfo();
       console.log("Percent fee updated successfully");
@@ -77,8 +116,9 @@ const AlloComponent = () => {
   };
 
   const handleUpdateBaseFee = async () => {
+    if (!allo) return;
     try {
-      await interaction.updateBaseFee(ethers.utils.parseEther(newBaseFee));
+      await allo.updateBaseFee(BigInt(newBaseFee) * BigInt(10 ** 18)); // Convert ETH to wei
       setNewBaseFee("");
       fetchContractInfo();
       console.log("Base fee updated successfully");
@@ -89,8 +129,9 @@ const AlloComponent = () => {
   };
 
   const handleUpdateTreasury = async () => {
+    if (!allo) return;
     try {
-      await interaction.updateTreasury(newTreasury);
+      await allo.updateTreasury(newTreasury);
       setNewTreasury("");
       fetchContractInfo();
       console.log("Treasury updated successfully");
@@ -100,22 +141,84 @@ const AlloComponent = () => {
     }
   };
 
-  const openCreateProgramModal = () => {
-    setIsCreateProgramModalOpen(true);
-  };
+  const handleCreateProgramSuccess = async () => {
+    if (!registry || !allo || !address || !programName) return;
 
-  const closeCreateProgramModal = () => {
-    setIsCreateProgramModalOpen(false);
-  };
+    try {
+      console.log("Checking if the wallet has a profile...");
+      let profile = await registry.getProfileByAnchor("0x27ceDB4755a7F3bF3798337B7D47b1a8Fa97f681");
+      if (profile) {
+        console.log("Wallet already has a profile with ID:", profile.id);
+      } else {
+        console.log("Creating profile...");
+        profile = await registry.createProfile({
+          metadata: [1, ""],
+          owner: address,
+          name: address,
+        });
+        console.log("Profile ID:", profile.id);
+      }
 
-  const handleCreateProgramSuccess = (program) => {
-    if (program && program.id) {
-      setPrograms((prevPrograms) => [...prevPrograms, program]);
-      console.log("New program added:", program);
-    } else {
-      console.error("Invalid program data:", program);
+      // Add strategy to cloneable strategies
+      const addedStrategy = await allo.addToCloneableStrategies(VAULT_STRATEGY_ADDRESS);
+      console.log("Adding strategy to cloneable strategies...", addedStrategy);
+
+      console.log("Creating pool...");
+      const txData = allo.createPool({
+        profileId: profile.id,
+        strategy: VAULT_STRATEGY_ADDRESS,
+        initStrategyData: "0x",
+        token: OP_TOKEN_ADDRESS,
+        amount: 0,
+        metadata: [1, programName],
+        managers: [address],
+      });
+
+      console.log("Transaction data:", txData);
+
+      const txHash = await walletClient.sendTransaction({
+        data: txData.data,
+        to: txData.to,
+        value: BigInt(txData.value || 0),  // Handle the value field as BigInt
+      });
+
+      console.log(`Transaction hash: ${txHash}`);
+
+      // Create a public client for waiting for the transaction receipt
+      const publicClient = createPublicClient({
+        chain: optimism,
+        transport: http(),
+      });
+
+      // Wait for the transaction receipt using publicClient
+      const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+      console.log("Transaction receipt:", receipt);
+
+      if (receipt.status === 'reverted') {
+        // Decode error from receipt
+        const error = decodeErrorResult({
+          data: receipt.logs, // or wherever your logs or revert reason data is
+          abi: abi, // Reference the imported ABI here
+        });
+
+        console.error("Transaction failed with error:", error);
+        setError(`Transaction failed with error: ${error}`);
+      } else {
+        // Get the pool ID from the event if successful
+        const poolId = await allo.getPoolCreatedEvent(txHash);
+
+        if (poolId) {
+          setPrograms((prevPrograms) => [...prevPrograms, { id: poolId, name: programName }]);
+          setProgramName(""); // Reset program name field after creation
+        }
+      }
+    } catch (err) {
+      console.error("Failed to create program:", err);
+      setError("Failed to create program. Please check the console for details.");
     }
   };
+
+
 
   return (
     <div className={styles.container}>
@@ -123,10 +226,14 @@ const AlloComponent = () => {
       <div className={styles.connectWalletContainer}>
         <button
           onClick={handleConnect}
-          disabled={isConnecting}
+          disabled={isConnecting || isConnected}
           className={styles.button}
         >
-          {isConnecting ? "Connecting..." : "Connect to MetaMask"}
+          {isConnecting
+            ? "Connecting..."
+            : isConnected
+              ? "Connected"
+              : "Connect to MetaMask"}
         </button>
         {error && <p className={styles.error}>{error}</p>}
       </div>
@@ -174,8 +281,14 @@ const AlloComponent = () => {
               </button>
             </div>
             <div>
+              <input
+                type="text"
+                value={programName}
+                onChange={(e) => setProgramName(e.target.value)}
+                placeholder="Program Name"
+              />
               <button
-                onClick={openCreateProgramModal}
+                onClick={handleCreateProgramSuccess}
                 className={styles.button}
               >
                 Create Program
@@ -188,14 +301,10 @@ const AlloComponent = () => {
           </div>
         </>
       )}
-      {isCreateProgramModalOpen && (
-        <CreateProgramForm
-          onClose={closeCreateProgramModal}
-          onSubmit={handleCreateProgramSuccess}
-        />
-      )}
     </div>
   );
 };
 
 export default AlloComponent;
+
+
